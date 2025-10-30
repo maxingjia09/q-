@@ -1,5 +1,5 @@
 <template>
-  <section class="video-news-section">
+  <section id="video-news-section" class="video-news-section">
     <div class="container">
       <!-- 视频专题部分 -->
       <div class="section-header">
@@ -305,17 +305,19 @@ onUnmounted(() => {
 }
 
 .news-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .news-card {
+  display: flex;
   background-color: white;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
+  height: 150px;
 }
 
 .news-card:hover {
@@ -323,7 +325,9 @@ onUnmounted(() => {
 }
 
 .news-image {
-  height: 160px;
+  width: 200px;
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .news-image img {
@@ -334,6 +338,9 @@ onUnmounted(() => {
 
 .news-content {
   padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .news-title {
@@ -378,8 +385,14 @@ onUnmounted(() => {
     flex: 0 0 280px;
   }
 
-  .news-grid {
-    grid-template-columns: 1fr;
+  .news-card {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .news-image {
+    width: 100%;
+    height: 160px;
   }
 }
 </style>
