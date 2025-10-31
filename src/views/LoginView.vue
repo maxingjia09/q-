@@ -103,6 +103,7 @@ const handleSubmit = async () => {
   try {
     // 模拟登录请求
     await authStore.login(form.email, form.password);
+    // 登录成功后触发事件，确保跳转到个人中心
     emit('login-success');
   } catch (error) {
     errors.general = error.message || '登录失败，请检查账号密码';

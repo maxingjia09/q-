@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { ref, computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { useRouter } from 'vue-router';
@@ -37,6 +37,7 @@ const closeAuthModal = () => {
 
 const handleLoginSuccess = () => {
   closeAuthModal();
+  authStore.initAuth();
   router.push('/personal');
 };
 
@@ -73,6 +74,7 @@ const scrollToSection = (sectionId) => {
 
       <div class="auth-buttons">
         <template v-if="isAuthenticated">
+          <RouterLink to="/personal" class="nav-link personal-link">个人中心</RouterLink>
           <div class="user-info">
             <span class="username">{{ user?.username }}</span>
             <span class="points">{{ points }} 积分</span>
@@ -180,6 +182,18 @@ const scrollToSection = (sectionId) => {
   padding: 0.2rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
+}
+
+.personal-link {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .personal-link {
+    display: none;
+  }
 }
 
 .btn-login,
