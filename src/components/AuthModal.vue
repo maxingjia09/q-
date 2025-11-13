@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from 'vue';
+import { ref, defineEmits, defineProps, watch } from 'vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 
@@ -29,11 +29,18 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'login-success']);
+const emit = defineEmits(['close', 'login-success', 'register-success']);
 
 const currentView = ref(props.initialView);
 
+// 监听initialView变化，确保每次打开弹窗时使用正确的视图类型
+watch(() => props.initialView, (newView) => {
+  currentView.value = newView;
+});
+
 const closeModal = () => {
+  // 重置视图状态，确保下次打开时使用正确的初始视图
+  currentView.value = props.initialView;
   emit('close');
 };
 
@@ -51,7 +58,10 @@ const handleLoginSuccess = () => {
 };
 
 const handleRegisterSuccess = () => {
-  currentView.value = 'login';
+  // 注册成功后先关闭模态框
+  closeModal();
+  // 可以考虑发出事件通知父组件
+  emit('register-success');
 };
 </script>
 

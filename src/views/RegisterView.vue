@@ -81,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { defineEmits } from 'vue';
@@ -100,6 +100,42 @@ const form = reactive({
 
 const errors = reactive({});
 const isLoading = ref(false);
+
+// 监听密码变化，实时验证密码格式
+watch(
+  () => form.password,
+  (newPassword) => {
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        errors.password = '密码长度不能少于6位';
+      } else if (!/[a-zA-Z]/.test(newPassword) || !/[0-9]/.test(newPassword)) {
+        errors.password = '密码必须同时包含字母和数字';
+      } else {
+        // 密码格式正确时清除错误信息
+        delete errors.password;
+        // 如果确认密码已填写，重新验证两次密码是否一致
+        if (form.confirmPassword && form.confirmPassword !== newPassword) {
+          errors.confirmPassword = '两次输入的密码不一致';
+        }
+      }
+    }
+  }
+);
+
+// 监听确认密码变化，实时验证两次密码是否一致
+watch(
+  () => form.confirmPassword,
+  (newConfirmPassword) => {
+    if (newConfirmPassword) {
+      if (newConfirmPassword !== form.password) {
+        errors.confirmPassword = '两次输入的密码不一致';
+      } else {
+        // 两次密码一致时清除错误信息
+        delete errors.confirmPassword;
+      }
+    }
+  }
+);
 
 const validateForm = () => {
   const newErrors = {};
@@ -121,6 +157,8 @@ const validateForm = () => {
     newErrors.password = '请输入密码';
   } else if (form.password.length < 6) {
     newErrors.password = '密码长度不能少于6位';
+  } else if (!/[a-zA-Z]/.test(form.password) || !/[0-9]/.test(form.password)) {
+    newErrors.password = '密码必须同时包含字母和数字';
   }
 
   if (!form.confirmPassword) {
@@ -138,7 +176,8 @@ const validateForm = () => {
 };
 
 const handleSwitchToLogin = () => {
-  emit('switch-to-login');
+  // 直接导航到登录页面，而不仅仅是发出事件
+  router.push('/login');
 };
 
 const handleSubmit = async () => {
@@ -152,6 +191,7 @@ const handleSubmit = async () => {
       email: form.email,
       password: form.password
     });
+    // 注册成功后发出事件通知父组件
     emit('register-success');
   } catch (error) {
     errors.general = error.message || '注册失败，请稍后重试';

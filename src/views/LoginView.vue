@@ -97,20 +97,35 @@ const handleSwitchToRegister = () => {
 };
 
 const handleSubmit = async () => {
-  if (!validateForm()) return;
+    console.log('Login submit called with email:', form.email);
+    if (!validateForm()) return;
 
-  isLoading.value = true;
-  try {
-    // 模拟登录请求
-    await authStore.login(form.email, form.password);
-    // 登录成功后触发事件，确保跳转到个人中心
-    emit('login-success');
-  } catch (error) {
-    errors.general = error.message || '登录失败，请检查账号密码';
-  } finally {
-    isLoading.value = false;
-  }
-};
+    isLoading.value = true;
+    try {
+      // 模拟登录请求
+      console.log('Calling authStore.login');
+      const userData = await authStore.login(form.email, form.password);
+      console.log('Login successful, user data:', userData);
+      
+      // 登录成功后先确保用户信息已初始化
+      await authStore.initAuth();
+      console.log('After initAuth, isAuthenticated:', authStore.isAuthenticated);
+      
+      // 登录成功后触发事件
+      emit('login-success');
+      
+      // 直接跳转到个人中心页面，确保无论是通过模态框还是直接登录都能跳转
+      console.log('Redirecting to /personal');
+      setTimeout(() => {
+        router.push('/personal');
+      }, 100); // 短暂延迟确保状态已更新
+    } catch (error) {
+      console.error('Login failed:', error.message);
+      errors.general = error.message || '登录失败，请检查账号密码';
+    } finally {
+      isLoading.value = false;
+    }
+  };
 </script>
 
 <style scoped>

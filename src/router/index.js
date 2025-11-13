@@ -35,8 +35,9 @@ const router = createRouter({
       path: '/personal',
       name: 'personal',
       component: PersonalView,
+      // 移除requiresAuth，允许未登录用户访问，让组件内的弹窗逻辑工作
       meta: {
-        requiresAuth: true
+        requiresAuth: false
       }
     }
   ],
@@ -44,13 +45,20 @@ const router = createRouter({
 
 // 添加路由守卫
 router.beforeEach((to, from, next) => {
+  console.log('Router guard triggered for route:', to.path);
   const authStore = useAuthStore();
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+  
+  console.log('Route requires auth:', requiresAuth);
+  console.log('Current auth status:', authStore.isAuthenticated);
+  console.log('Current user:', authStore.user);
 
   if (requiresAuth && !authStore.isAuthenticated) {
     // 需要登录，但未登录，重定向到登录页
+    console.log('Auth required but not authenticated, redirecting to /login');
     next('/login');
   } else {
+    console.log('Allowing navigation to:', to.path);
     next();
   }
 });

@@ -1,9 +1,17 @@
 <template>
   <div class="personal-container">
-    <!-- 背景图片 -->
-    <div class="personal-background">
-      <img src="https://images.unsplash.com/photo-1604581489130-046e0ba4b1c3?q=80&w=2070&auto=format&fit=crop" alt="雪山攀登背景" />
-      <div class="overlay"></div>
+    <!-- 移除个人页面内部的背景，使用全局背景 -->
+    
+    <!-- 未登录提示弹窗 -->
+    <div v-if="showLoginPrompt" class="prompt-modal-overlay" @click="handlePromptClick">
+      <div class="prompt-modal-content" @click.stop>
+        <h3 class="prompt-title">提示</h3>
+        <p class="prompt-message">请先进行登录</p>
+        <div class="prompt-buttons">
+          <button class="btn-primary" @click="goToLogin">立即登录</button>
+          <button class="btn-secondary" @click="showLoginPrompt = false">返回</button>
+        </div>
+      </div>
     </div>
     
     <!-- 支付方式选择模态框 -->
@@ -39,24 +47,6 @@
         <button class="payment-modal-close" @click="closePaymentModal">取消</button>
       </div>
     </div>
-    <div class="personal-sidebar">
-      <div class="user-profile">
-        <div class="avatar">
-          <img src="https://picsum.photos/id/64/200" alt="用户头像" class="avatar-img">
-        </div>
-        <h3 class="username">{{ user?.username || '用户名' }}</h3>
-        <p class="user-role">普通会员</p>
-      </div>
-
-      <nav class="sidebar-nav">
-        <a href="#profile" class="nav-item active" @click.prevent="scrollToSection('profile')">个人信息</a>
-        <a href="#points" class="nav-item" @click.prevent="scrollToSection('points')">我的积分</a>
-        <a href="#courses" class="nav-item" @click.prevent="scrollToSection('courses')">我的课程</a>
-        <a href="#settings" class="nav-item" @click.prevent="scrollToSection('settings')">账户设置</a>
-        <button class="btn-logout" @click="handleLogout">退出登录</button>
-      </nav>
-    </div>
-
     <div class="personal-content">
       <div class="content-header">
         <h2 class="content-title">个人中心</h2>
@@ -139,6 +129,7 @@ const isRecharging = ref(false);
 const rechargeError = ref('');
 const showPaymentModal = ref(false);
 const selectedPaymentMethod = ref('');
+const showLoginPrompt = ref(false);
 
 // 格式化注册时间（模拟）
 const formattedRegisterTime = computed(() => {
@@ -152,15 +143,31 @@ const formattedRegisterTime = computed(() => {
 
 // 初始化
 onMounted(async () => {
+  console.log('PersonalView mounted');
+  console.log('isAuthenticated:', authStore.isAuthenticated);
+  
   // 检查登录状态
   if (!authStore.isAuthenticated) {
-    router.push('/login');
+    console.log('Not authenticated, showing login prompt');
+    showLoginPrompt.value = true;
     return;
   }
 
+  console.log('Already authenticated, initializing user info');
   // 初始化用户信息
   await authStore.initAuth();
+  console.log('After initAuth, user:', authStore.user);
 });
+
+// 处理提示弹窗点击
+const handlePromptClick = () => {
+  // 点击遮罩层不关闭弹窗，必须通过按钮操作
+};
+
+// 跳转到登录页
+const goToLogin = () => {
+  router.push('/login');
+};
 
 // 显示支付方式选择模态框
 const handleRecharge = () => {
@@ -229,49 +236,14 @@ const scrollToSection = (sectionId) => {
 
 <style scoped>
 .personal-container {
-  display: flex;
   min-height: 100vh;
-  background-color: #f5f7fa;
   position: relative;
-  overflow: hidden;
-}
-
-/* 背景样式 */
-.personal-background {
-  position: absolute;
-  top: 0;
-  left: 0;
+  max-width: 1400px;
+  margin: 0 auto;
   width: 100%;
-  height: 100%;
-  z-index: -1;
-  overflow: hidden;
 }
 
-.personal-background img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.personal-background .overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
-}
-
-.personal-sidebar {
-  width: 260px;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 2rem 0;
-  border-radius: 8px;
-  margin: 2rem;
-}
+/* 移除个人页面内部的侧边栏样式 */
 
 .user-profile {
   text-align: center;
@@ -343,13 +315,14 @@ const scrollToSection = (sectionId) => {
 }
 
 .personal-content {
-  flex: 1;
   padding: 2rem;
-  margin: 2rem 2rem 2rem 0;
+  margin: 2rem 0.5rem;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 1400px;
+  width: calc(100% - 1rem);
 }
 
 .content-header {
@@ -585,5 +558,76 @@ const scrollToSection = (sectionId) => {
 
 .payment-modal-close:hover {
   background-color: #e0e6ed;
+}
+
+/* 未登录提示弹窗样式 */
+.prompt-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.prompt-modal-content {
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.prompt-title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+.prompt-message {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.prompt-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 25px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
 }
 </style>

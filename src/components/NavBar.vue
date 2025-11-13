@@ -48,6 +48,11 @@ const handleLogout = () => {
   }
 };
 
+const handleRegisterSuccess = () => {
+  // 注册成功后导航到登录页面
+  router.push('/login');
+};
+
 // 页面内滚动到指定区域
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId);
@@ -95,6 +100,7 @@ const scrollToSection = (sectionId) => {
     :initial-view="authModalView"
     @close="closeAuthModal"
     @login-success="handleLoginSuccess"
+    @register-success="handleRegisterSuccess"
   />
 </template>
 

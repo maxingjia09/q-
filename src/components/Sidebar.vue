@@ -11,11 +11,6 @@ const menuItems = [
     route: '/'
   },
   {
-    title: '关于我们',
-    icon: 'ℹ️',
-    route: '/about'
-  },
-  {
     title: '课程体系',
     icon: '📚',
     route: '#courses'
@@ -39,16 +34,6 @@ const menuItems = [
     title: '个人中心',
     icon: '👤',
     route: '/personal'
-  },
-  {
-    title: '登录',
-    icon: '🔑',
-    route: '/login'
-  },
-  {
-    title: '注册',
-    icon: '📝',
-    route: '/register'
   }
 ];
 

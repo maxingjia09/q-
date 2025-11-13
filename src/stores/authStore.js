@@ -16,19 +16,34 @@ export const useAuthStore = defineStore('auth', () => {
       email: 'admin@example.com',
       password: 'password123',
       points: 1000
+    },
+    {
+      id: 2,
+      username: 'testuser',
+      email: 'test@example.com',
+      password: '123456',
+      points: 500
     }
   ];
 
   // 登录
   const login = async (email, password) => {
+    console.log('Login function called with email:', email);
+    console.log('Available users:', mockUsers.map(u => u.email));
+    
     // 模拟API请求
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const foundUser = mockUsers.find(u => u.email === email && u.password === password);
+    console.log('User found:', !!foundUser);
+    
     if (!foundUser) {
+      console.log('User not found or password incorrect');
       throw new Error('邮箱或密码不正确');
     }
 
+    console.log('Login successful, user details:', foundUser);
+    
     // 保存用户信息和token
     user.value = {
       id: foundUser.id,
@@ -37,9 +52,18 @@ export const useAuthStore = defineStore('auth', () => {
       points: foundUser.points
     };
     points.value = foundUser.points;
-    token.value = 'mock-token-' + Date.now();
-    localStorage.setItem('authToken', token.value);
-
+    
+    // 生成并保存token
+    const newToken = 'mock-token-' + Date.now();
+    token.value = newToken;
+    localStorage.setItem('authToken', newToken);
+    console.log('Token set:', newToken);
+    
+    // 保存上次登录的邮箱，用于initAuth中加载用户信息
+    localStorage.setItem('lastLoginEmail', email);
+    console.log('Last login email saved:', email);
+    
+    console.log('isAuthenticated after login:', isAuthenticated.value);
     return user.value;
   };
 
@@ -102,12 +126,28 @@ export const useAuthStore = defineStore('auth', () => {
     return points.value;
   };
 
-  // 初始化：如果有token但没有用户信息，尝试加载用户信息
+  // 初始化认证状态
   const initAuth = async () => {
-    if (token.value && !user.value) {
-      // 模拟从服务器加载用户信息
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const foundUser = mockUsers.find(u => u.email === 'admin@example.com'); // 简化示例
+    console.log('InitAuth called');
+    
+    // 检查是否有token
+    const savedToken = localStorage.getItem('authToken');
+    const savedEmail = localStorage.getItem('lastLoginEmail');
+    
+    console.log('Token exists:', !!savedToken);
+    console.log('User exists:', !!user.value);
+    console.log('lastLoginEmail:', savedEmail);
+    console.log('Available mock users:', mockUsers.map(u => u.email));
+    
+    // 更新token状态
+    token.value = savedToken;
+    
+    // 如果有token但没有用户信息，尝试加载用户信息
+    if (savedToken && savedEmail) {
+      console.log('Attempting to load user by email:', savedEmail);
+      const foundUser = mockUsers.find(u => u.email === savedEmail);
+      console.log('Found user:', !!foundUser);
+      
       if (foundUser) {
         user.value = {
           id: foundUser.id,
@@ -116,8 +156,22 @@ export const useAuthStore = defineStore('auth', () => {
           points: foundUser.points
         };
         points.value = foundUser.points;
+        console.log('User loaded successfully:', user.value);
+      } else {
+        console.log('User not found, clearing token');
+        // 如果找不到用户，清除token
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('lastLoginEmail');
+        token.value = null;
+        user.value = null;
       }
+    } else if (savedToken && !savedEmail) {
+      console.log('Token exists but no lastLoginEmail, clearing token');
+      localStorage.removeItem('authToken');
+      token.value = null;
     }
+    
+    console.log('InitAuth completed, isAuthenticated:', isAuthenticated.value);
   };
 
   return {
