@@ -66,7 +66,8 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1800px; /* 与App.vue中的container保持一致 */
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -74,19 +75,103 @@
 .section-header {
   text-align: center;
   margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: sectionHeaderFadeIn 0.8s ease-out forwards;
+  animation-delay: 0.2s;
 }
 
 .section-title {
   font-size: 2.5rem;
   color: #2c3e50;
   margin-bottom: 1rem;
+  display: inline-block;
+  position: relative;
+  padding: 0 2.5rem;
+}
+
+.section-title::before,
+.section-title::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  opacity: 0;
+  animation: climberFadeIn 0.5s ease-out forwards;
+  animation-delay: 0.5s;
+}
+
+.section-title::before {
+  left: -1.5rem;
+  background-image: url('/src/assets/climbingAnimation.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.section-title::after {
+  right: -1.5rem;
+  background-image: url('/src/assets/climbingAnimation.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: translateY(-50%) rotateY(180deg);
 }
 
 .section-divider {
-  width: 80px;
+  width: 0;
   height: 4px;
   background-color: #3498db;
   margin: 0 auto;
+  animation: dividerGrow 1s ease-out forwards;
+  animation-delay: 0.8s;
+}
+
+/* 动画关键帧 */
+@keyframes sectionHeaderFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes climberFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.section-title::after {
+  animation-name: climberFadeInAfter;
+}
+
+@keyframes climberFadeInAfter {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.8) rotateY(180deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1) rotateY(180deg);
+  }
+}
+
+@keyframes dividerGrow {
+  from {
+    width: 0;
+  }
+  to {
+    width: 80px;
+  }
 }
 
 .course-grid {

@@ -13,7 +13,8 @@
 </script>
 
 <style scoped>
-.hero-wrapper {width: 100%;
+.hero-wrapper {
+    width: 100%;
     height: 600px;
     background-image: url('https://picsum.photos/id/29/1920/1080');
     background-size: cover;
@@ -22,7 +23,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;}
+    position: relative;
+}
 
 .hero-wrapper::after {
   content: '';

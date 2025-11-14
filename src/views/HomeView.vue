@@ -20,7 +20,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="home-page">
+  <div class="home-page container">
     <!-- 主视觉区域 -->
     <HeroSection />
 

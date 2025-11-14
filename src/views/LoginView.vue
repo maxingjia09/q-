@@ -111,14 +111,19 @@ const handleSubmit = async () => {
       await authStore.initAuth();
       console.log('After initAuth, isAuthenticated:', authStore.isAuthenticated);
       
-      // 登录成功后触发事件
+      // 登录成功后触发事件，让父组件（如AuthModal和NavBar）处理跳转逻辑
       emit('login-success');
       
-      // 直接跳转到个人中心页面，确保无论是通过模态框还是直接登录都能跳转
-      console.log('Redirecting to /personal');
+      // 确保直接访问登录页时也能跳转到个人中心
+      // 这个逻辑不会影响通过模态框登录的情况，因为父组件会处理跳转
       setTimeout(() => {
-        router.push('/personal');
-      }, 100); // 短暂延迟确保状态已更新
+        // 只有在直接访问登录页时才执行跳转
+        // 避免在模态框模式下双重跳转
+        if (window.location.pathname === '/login') {
+          console.log('Direct login page, performing full page refresh to /personal');
+          window.location.href = '/personal';
+        }
+      }, 100);
     } catch (error) {
       console.error('Login failed:', error.message);
       errors.general = error.message || '登录失败，请检查账号密码';

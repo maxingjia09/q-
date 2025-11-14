@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <!-- 山脉背景 -->
+  <path d="M0,40 L5,35 L10,38 L15,30 L20,33 L25,25 L30,28 L35,20 L40,23 L45,15 L50,18 L55,10 L60,12 L60,60 L0,60 Z" fill="#e0e0e0" />
+  
+  <!-- 爬山小人 -->
+  <g id="climber">
+    <!-- 头部 -->
+    <circle cx="30" cy="20" r="5" fill="#3498db">
+      <animate attributeName="cy" values="20;19;20" dur="1s" repeatCount="indefinite" />
+    </circle>
+    
+    <!-- 身体 -->
+    <line x1="30" y1="25" x2="30" y2="35" stroke="#3498db" stroke-width="2">
+      <animate attributeName="x2" values="30;31;30" dur="1s" repeatCount="indefinite" />
+    </line>
+    
+    <!-- 左腿 -->
+    <line x1="30" y1="35" x2="27" y2="45" stroke="#3498db" stroke-width="2">
+      <animate attributeName="x2" values="27;26;27" dur="1s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="45;43;45" dur="1s" repeatCount="indefinite" />
+    </line>
+    
+    <!-- 右腿 -->
+    <line x1="30" y1="35" x2="33" y2="45" stroke="#3498db" stroke-width="2">
+      <animate attributeName="x2" values="33;34;33" dur="1s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="45;44;45" dur="1s" repeatCount="indefinite" />
+    </line>
+    
+    <!-- 左臂 -->
+    <line x1="30" y1="28" x2="25" y2="33" stroke="#3498db" stroke-width="2">
+      <animate attributeName="x2" values="25;24;25" dur="1s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="33;31;33" dur="1s" repeatCount="indefinite" />
+    </line>
+    
+    <!-- 右臂 -->
+    <line x1="30" y1="28" x2="35" y2="33" stroke="#3498db" stroke-width="2">
+      <animate attributeName="x2" values="35;36;35" dur="1s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="33;32;33" dur="1s" repeatCount="indefinite" />
+    </line>
+    
+    <!-- 登山杖 -->
+    <line x1="35" y1="33" x2="40" y2="40" stroke="#8B4513" stroke-width="1">
+      <animate attributeName="x2" values="40;42;40" dur="1s" repeatCount="indefinite" />
+      <animate attributeName="y2" values="40;38;40" dur="1s" repeatCount="indefinite" />
+    </line>
+  </g>
+  
+  <!-- 整体移动动画 -->
+  <animateTransform xlink:href="#climber" attributeName="transform" type="translate" values="-5,0;5,0;-5,0" dur="3s" repeatCount="indefinite" />
+  <animateTransform xlink:href="#climber" attributeName="transform" type="translate" additive="sum" values="0,0;0,-5;0,0" dur="2s" repeatCount="indefinite" />
+</svg>

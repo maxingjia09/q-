@@ -53,7 +53,10 @@ const switchToLogin = () => {
 };
 
 const handleLoginSuccess = () => {
+  console.log('Login success event received in AuthModal');
+  // 先发出登录成功事件，让父组件（如NavBar）处理跳转逻辑
   emit('login-success');
+  // 然后再关闭模态框
   closeModal();
 };
 

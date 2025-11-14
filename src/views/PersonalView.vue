@@ -71,6 +71,10 @@
             <span class="info-label">会员等级</span>
             <span class="info-value">普通会员</span>
           </div>
+          <div class="info-item">
+            <span class="info-label"></span>
+            <button class="btn-logout" @click="handleLogout">退出登录</button>
+          </div>
         </div>
       </div>
 
@@ -216,7 +220,8 @@ const processRecharge = async () => {
 const handleLogout = async () => {
   if (confirm('确定要退出登录吗？')) {
     await authStore.logout();
-    router.push('/login');
+    // 使用window.location.href强制刷新并返回首页
+    window.location.href = '/';
   }
 };
 
@@ -238,7 +243,7 @@ const scrollToSection = (sectionId) => {
 .personal-container {
   min-height: 100vh;
   position: relative;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
 }
@@ -316,13 +321,13 @@ const scrollToSection = (sectionId) => {
 
 .personal-content {
   padding: 2rem;
-  margin: 2rem 0.5rem;
+  margin: 2rem 1rem;
   background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-width: 1400px;
-  width: calc(100% - 1rem);
+  max-width: 1600px;
+  width: calc(100% - 2rem);
 }
 
 .content-header {

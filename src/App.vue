@@ -71,25 +71,35 @@ body {
 
 .main-content {
   flex: 1;
-  padding-left: 280px; /* 为侧边栏留出空间 */
+  /* 移除padding-left，因为侧边栏已经是fixed定位 */
   transition: padding-left 0.3s ease;
   background-color: transparent; /* 透明背景，让页面自己控制背景 */
   min-height: calc(100vh - 80px); /* 确保内容区域足够高 */
-  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  width: 100%; /* 使用全宽度 */
 }
 
 /* 响应式调整 */
 @media (max-width: 768px) {
   .main-content {
-    padding-left: 240px; /* 小屏幕上侧边栏宽度更小 */
+    /* 响应式下也不需要padding-left */
   }
 }
 
 /* 通用容器样式 */
 .container {
-  max-width: 1400px;
+  max-width: 1600px; /* 增加最大宽度 */
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+/* 确保RouterView内的内容能够正常居中 */
+.main-content > * {
+  width: 100%;
+  max-width: 1800px; /* 进一步增加最大宽度以满足要求 */
+  margin: 0 auto;
 }
 
 /* 通用按钮样式 */

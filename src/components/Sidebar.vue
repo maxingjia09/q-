@@ -1,7 +1,9 @@
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { computed } from 'vue';
 
 const router = useRouter();
+const route = useRoute();
 
 // 侧边栏菜单项
 const menuItems = [
@@ -37,17 +39,34 @@ const menuItems = [
   }
 ];
 
+// 判断菜单项是否处于活动状态
+const isActive = computed(() => (itemRoute) => {
+  // 对于路由链接，检查当前路径
+  if (!itemRoute.startsWith('#')) {
+    return route.path === itemRoute;
+  }
+  // 对于锚点链接，这里可以添加特殊处理逻辑
+  // 目前暂时返回false，因为锚点状态通常在页面内部管理
+  return false;
+});
+
 // 导航到指定路由或锚点
-const navigateTo = (route) => {
-  if (route.startsWith('#')) {
+const navigateTo = (targetRoute) => {
+  if (targetRoute.startsWith('#')) {
     // 处理锚点链接
-    const element = document.querySelector(route);
+    const element = document.querySelector(targetRoute);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   } else {
-    // 处理普通路由
-    router.push(route);
+    // 判断当前是否在个人中心页面且要切换到其他页面
+    // 如果是从个人中心切换到其他页面，使用window.location.href强制刷新
+    if (route.path === '/personal' && targetRoute !== '/personal') {
+      window.location.href = targetRoute;
+    } else {
+      // 其他情况使用router.push
+      router.push(targetRoute);
+    }
   }
 };
 </script>
@@ -71,6 +90,7 @@ const navigateTo = (route) => {
           <a 
             :href="item.route"
             class="sidebar-link"
+            :class="{ active: isActive(item.route) }"
             @click.prevent="navigateTo(item.route)"
             :target="item.route.startsWith('#') ? '_self' : undefined"
           >

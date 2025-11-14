@@ -35,10 +35,26 @@ const closeAuthModal = () => {
   showAuthModal.value = false;
 };
 
-const handleLoginSuccess = () => {
-  closeAuthModal();
-  authStore.initAuth();
-  router.push('/personal');
+const handleLoginSuccess = async () => {
+  console.log('Login success handler triggered in NavBar');
+  closeAuthModal(); // 先关闭模态框
+  
+  // 确保用户信息已初始化
+  try {
+    await authStore.initAuth();
+    console.log('After initAuth in NavBar, isAuthenticated:', authStore.isAuthenticated);
+    
+    // 确认认证状态后使用window.location.href进行页面刷新和跳转
+    // 这样可以确保页面完全刷新并进入个人中心
+    if (authStore.isAuthenticated) {
+      console.log('Redirecting with page refresh to personal center');
+      window.location.href = '/personal';
+    } else {
+      console.error('Authentication failed after login success event');
+    }
+  } catch (error) {
+    console.error('Error initializing auth after login:', error);
+  }
 };
 
 const handleLogout = () => {
@@ -121,7 +137,8 @@ const scrollToSection = (sectionId) => {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1600px; /* 与App.vue中的container保持一致 */
+  width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
   display: flex;
