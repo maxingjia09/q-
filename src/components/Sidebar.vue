@@ -13,6 +13,11 @@ const menuItems = [
     route: '/'
   },
   {
+    title: '活动报名',
+    icon: '📝',
+    route: '#activities'
+  },
+  {
     title: '课程体系',
     icon: '📚',
     route: '#courses'

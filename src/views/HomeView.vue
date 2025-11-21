@@ -4,6 +4,7 @@ import HeroSection from '../components/HeroSection.vue';
 import CourseSection from '../components/CourseSection.vue';
 import CertificateSection from '../components/CertificateSection.vue';
 import VideoNewsSection from '../components/VideoNewsSection.vue';
+import ActivitiesSection from '../components/ActivitiesSection.vue';
 import NavBar from '../components/NavBar.vue';
 
 const isScrolled = ref(false);
@@ -23,6 +24,9 @@ onMounted(() => {
   <div class="home-page container">
     <!-- 主视觉区域 -->
     <HeroSection />
+    
+    <!-- 活动报名部分 -->
+    <ActivitiesSection />
 
     <!-- 课程体系部分 -->
     <CourseSection />
