@@ -1,34 +1,47 @@
 <template>
   <div class="personal-container">
-    <!-- 简化的个人页面布局，确保内容可见 -->
-    <h1 style="text-align: center; margin: 2rem 0; color: #2c3e50;">个人中心</h1>
+    <!-- 页面标题 -->
+    <h1 class="page-title">个人中心</h1>
     
-    <!-- 主要内容区域 -->
-    <div class="main-layout">
-      <!-- 左侧主要内容 -->
-      <div class="personal-content">
-        <h2>个人信息</h2>
-        <div class="info-card">
-          <p>用户名: {{ user?.username || '访客用户' }}</p>
-          <p>邮箱: {{ user?.email || '未登录' }}</p>
-          <p>注册时间: {{ formattedRegisterTime }}</p>
-          <p>会员等级: 普通会员</p>
+    <!-- 主要内容区域 - 使用flex布局确保左右两栏正常显示 -->
+    <div class="personal-content-wrapper">
+      <!-- 左侧个人信息卡片 -->
+      <div class="user-info-card">
+        <h2 class="section-title">个人信息</h2>
+        <div class="info-content">
+          <div class="info-row">
+            <span class="info-label">用户名:</span>
+            <span class="info-value">{{ user?.username || '访客用户' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">邮箱:</span>
+            <span class="info-value">{{ user?.email || '未登录' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">注册时间:</span>
+            <span class="info-value">{{ formattedRegisterTime }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">会员等级:</span>
+            <span class="info-value">普通会员</span>
+          </div>
         </div>
       </div>
       
-      <!-- 右侧：我参与的活动 -->
-      <div class="side-content">
-        <div class="activities-section">
-          <h2>我参与的活动</h2>
-          <div class="activities-list">
-            <div v-for="activity in joinedActivities" :key="activity.id" class="activity-card">
-              <img :src="activity.image" :alt="activity.name" style="width: 100%; height: 150px; object-fit: cover;">
-              <div style="padding: 1rem;">
-                <h4>{{ activity.name }}</h4>
-                <p>{{ activity.location }}</p>
-                <p>{{ activity.date }}</p>
-                <p>状态: {{ activity.status }}</p>
-                <button>查看详情</button>
+      <!-- 右侧活动列表 -->
+      <div class="activities-card">
+        <h2 class="section-title">我参与的活动</h2>
+        <div class="activities-container">
+          <div v-for="activity in joinedActivities" :key="activity.id" class="activity-item">
+            <img :src="activity.image" :alt="activity.name" class="activity-image">
+            <div class="activity-text">
+              <h4 class="activity-title">{{ activity.name }}</h4>
+              <p class="activity-location">{{ activity.location }}</p>
+              <p class="activity-date">{{ activity.date }}</p>
+              <span class="status-badge" :class="activity.status">{{ activity.status }}</span>
+              <div class="activity-buttons">
+                <button class="view-btn" @click="viewActivityDetails(activity.id)">查看详情</button>
+                <button v-if="activity.status === '进行中'" class="cancel-btn" @click="cancelActivity(activity.id)">取消参与</button>
               </div>
             </div>
           </div>
@@ -234,614 +247,241 @@ const browseActivities = () => {
 </script>
 
 <style scoped>
+/* 基础容器样式 */
 .personal-container {
   min-height: 100vh;
-  position: relative;
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem 2rem 300px; /* 避开固定侧边栏 */
   background-color: #f8f9fa;
+  box-sizing: border-box;
 }
 
-/* 确保页面内容始终可见 */
-.main-layout {
-  opacity: 1 !important;
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 2rem;
-  margin: 2rem auto;
-  max-width: 1400px;
-  width: 100%;
-  min-height: 500px;
-}
-
-/* 移除个人页面内部的侧边栏样式 */
-
-.user-profile {
+/* 页面标题 */
+.page-title {
   text-align: center;
-  padding: 0 1.5rem 1.5rem;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin: 0 auto 1rem;
-  border: 3px solid #f0f0f0;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.username {
-  font-size: 1.2rem;
+  font-size: 2rem;
   color: #2c3e50;
-  margin-bottom: 0.3rem;
-}
-
-.user-role {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.sidebar-nav {
-  padding: 1.5rem;
-}
-
-.nav-item {
-  display: block;
-  padding: 0.8rem 1rem;
-  color: #666;
-  text-decoration: none;
-  border-radius: 6px;
-  margin-bottom: 0.3rem;
-  transition: all 0.2s;
-}
-
-.nav-item:hover,
-.nav-item.active {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: #3498db;
-}
-
-.btn-logout {
-  width: 100%;
-  padding: 0.8rem;
-  background-color: transparent;
-  border: 1px solid #e74c3c;
-  color: #e74c3c;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: 1rem;
-}
-
-.btn-logout:hover {
-  background-color: rgba(231, 76, 60, 0.1);
-}
-
-/* 主要内容区域布局 - 左右两栏 */
-.main-layout {
-  display: grid !important;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 2rem;
-  margin: 2rem auto;
-  max-width: 1400px;
-  width: 100%;
-  min-height: 600px;
-  background-color: transparent;
-}
-
-/* 左侧主要内容 */
-.personal-content {
-  padding: 2rem;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  display: block !important;
-}
-
-/* 右侧边栏内容 - 我参与的活动 */
-.side-content {
-  padding: 0;
-  display: block !important;
-}
-
-.activities-section {
-  padding: 2rem;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  height: fit-content;
-  position: relative;
-  top: 0;
-  display: block !important;
-}
-
-.activities-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.activity-card {
-  border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  background-color: white;
-  display: flex;
-  align-items: stretch;
-}
-
-.activity-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.activity-image {
-  width: 35%;
-  height: 160px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.activity-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.activity-card:hover .activity-img {
-  transform: scale(1.05);
-}
-
-.activity-info {
-  padding: 1.2rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.activity-name {
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-}
-
-.activity-location {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.8rem;
-}
-
-.activity-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  font-size: 0.85rem;
-}
-
-.activity-date {
-  color: #7f8c8d;
-}
-
-.activity-status {
-  padding: 0.2rem 0.8rem;
-  border-radius: 12px;
-  font-weight: 500;
-  font-size: 0.8rem;
-}
-
-.activity-status."已完成" {
-  background-color: rgba(46, 204, 113, 0.1);
-  color: #27ae60;
-}
-
-.activity-status."进行中" {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: #3498db;
-}
-
-.activity-status."已取消" {
-  background-color: rgba(149, 165, 166, 0.1);
-  color: #7f8c8d;
-}
-
-.activity-actions {
-  display: flex;
-  gap: 0.8rem;
-  justify-content: flex-end;
-}
-
-.btn-view-details,
-.btn-cancel,
-.btn-browse {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-}
-
-.btn-view-details {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-view-details:hover {
-  background-color: #2980b9;
-}
-
-.btn-cancel {
-  background-color: #e74c3c;
-  color: white;
-}
-
-.btn-cancel:hover {
-  background-color: #c0392b;
-}
-
-.btn-browse {
-  background-color: #3498db;
-  color: white;
-  margin-top: 1rem;
-}
-
-.btn-browse:hover {
-  background-color: #2980b9;
-}
-
-.no-activities {
-  text-align: center;
-  padding: 2rem 0;
-  color: #7f8c8d;
-}
-
-/* 根据活动状态动态添加样式 */
-.activity-status[data-status="已完成"] {
-  background-color: rgba(46, 204, 113, 0.1);
-  color: #27ae60;
-}
-
-.activity-status[data-status="进行中"] {
-  background-color: rgba(52, 152, 219, 0.1);
-  color: #3498db;
-}
-
-.activity-status[data-status="已取消"] {
-  background-color: rgba(149, 165, 166, 0.1);
-  color: #7f8c8d;
-}
-
-.content-header {
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f0f0f0;
 }
 
-.content-title {
-  font-size: 1.8rem;
-  color: #2c3e50;
+/* 内容包装器 - 使用flex布局 */
+.personal-content-wrapper {
+  display: flex;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.content-section {
-  margin-bottom: 3rem;
+/* 左侧个人信息卡片 */
+.user-info-card {
+  flex: 0 0 300px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 右侧活动列表卡片 */
+.activities-card {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 通用标题样式 */
 .section-title {
   font-size: 1.3rem;
   color: #2c3e50;
   margin-bottom: 1.5rem;
-  padding-left: 0.5rem;
-  border-left: 3px solid #3498db;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #3498db;
 }
 
-.info-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 1.5rem;
-}
-
-.info-item {
+/* 个人信息内容 */
+.info-content {
   display: flex;
-  padding: 1rem 0;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.info-item:last-child {
+.info-row:last-child {
   border-bottom: none;
 }
 
 .info-label {
-  flex: 0 0 120px;
   color: #666;
   font-weight: 500;
 }
 
 .info-value {
-  flex: 1;
   color: #2c3e50;
+  font-weight: 400;
 }
 
-.points-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  padding: 2rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: center;
+/* 活动容器 */
+.activities-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
-.points-display {
-  text-align: center;
-  padding: 1.5rem;
-  background-color: rgba(52, 152, 219, 0.05);
-  border-radius: 8px;
-}
-
-.points-label {
-  display: block;
-  color: #666;
-  margin-bottom: 0.5rem;
-}
-
-.points-value {
-  font-size: 3rem;
-  font-weight: bold;
-  color: #3498db;
-}
-
-.recharge-section {
+/* 单个活动项 */
+.activity-item {
+  background-color: #f9f9f9;
+  border-radius: 6px;
   padding: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.recharge-title {
+.activity-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* 活动图片 */
+.activity-image {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* 活动文本内容 */
+.activity-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* 活动标题 */
+.activity-title {
   font-size: 1.1rem;
   color: #2c3e50;
-  margin-bottom: 1rem;
+  margin: 0;
+  font-weight: 600;
 }
 
-.recharge-form {
-  padding: 1rem 0;
+/* 活动地点 */
+.activity-location {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
 }
 
-.note-text {
-  font-size: 0.875rem;
-  color: #999;
+/* 活动日期 */
+.activity-date {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin: 0;
+}
+
+/* 状态标签 */
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+/* 不同状态的颜色 */
+.status-badge.已完成 {
+  background-color: #27ae60;
+  color: white;
+}
+
+.status-badge.进行中 {
+  background-color: #3498db;
+  color: white;
+}
+
+.status-badge.已取消 {
+  background-color: #95a5a6;
+  color: white;
+}
+
+/* 活动按钮容器 */
+.activity-buttons {
   margin-top: 0.5rem;
+  display: flex;
+  gap: 0.8rem;
 }
 
-.btn-recharge {
-  width: 100%;
-  padding: 0.9rem;
+/* 查看详情按钮 */
+.view-btn {
+  padding: 0.5rem 1rem;
   background-color: #3498db;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 0.9rem;
   transition: background-color 0.2s;
-  margin-top: 1rem;
 }
 
-.btn-recharge:hover:not(:disabled) {
+.view-btn:hover {
   background-color: #2980b9;
 }
 
-.btn-recharge:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
+/* 取消参与按钮 */
+.cancel-btn {
+  padding: 0.5rem 1rem;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
 }
 
-@media (max-width: 1200px) {
-  .main-layout {
-    grid-template-columns: 1fr 1.4fr;
-    gap: 1.5rem;
-  }
+.cancel-btn:hover {
+  background-color: #c0392b;
 }
 
+/* 响应式设计 */
 @media (max-width: 992px) {
-  .main-layout {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .personal-container {
+    padding-left: 250px;
   }
-
-  .personal-content {
-    margin: 0;
-    padding: 1.5rem;
+  
+  .personal-content-wrapper {
+    flex-direction: column;
   }
-
-  .side-content {
-    margin: 0;
-  }
-
-  .activities-section {
-    position: static;
-    padding: 1.5rem;
-  }
-
-  .points-card {
-    grid-template-columns: 1fr;
+  
+  .user-info-card {
+    flex: none;
   }
 }
 
 @media (max-width: 768px) {
-  .personal-content {
-    padding: 1rem;
+  .personal-container {
+    padding-left: 200px;
+    padding-right: 0.5rem;
   }
-
-  .info-item {
+  
+  .activity-item {
     flex-direction: column;
   }
-
-  .info-label {
-    margin-bottom: 0.5rem;
+  
+  .activity-image {
+    width: 100%;
+    height: 160px;
   }
-}
-
-/* 支付方式模态框样式 */
-.payment-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.payment-modal-content {
-  background-color: white;
-  border-radius: 8px;
-  padding: 2rem;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.payment-modal-title {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  color: #2c3e50;
-}
-
-.payment-options {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.payment-option {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.payment-option:hover {
-  border-color: #3498db;
-  background-color: rgba(52, 152, 219, 0.05);
-}
-
-.payment-icon {
-  margin-right: 1rem;
-}
-
-.payment-name {
-  font-size: 1.1rem;
-  color: #2c3e50;
-}
-
-.payment-modal-close {
-  width: 100%;
-  padding: 0.9rem;
-  background-color: #f5f7fa;
-  color: #666;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.payment-modal-close:hover {
-  background-color: #e0e6ed;
-}
-
-/* 未登录提示弹窗样式 */
-.prompt-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.prompt-modal-content {
-  background-color: white;
-  padding: 30px;
-  border-radius: 8px;
-  text-align: center;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.prompt-title {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #2c3e50;
-}
-
-.prompt-message {
-  font-size: 1.1rem;
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.prompt-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-.btn-primary,
-.btn-secondary {
-  padding: 10px 25px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background-color: #3498db;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #2980b9;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background-color: #f5f5f5;
-  color: #666;
-}
-
-.btn-secondary:hover {
-  background-color: #e0e0e0;
 }
 </style>

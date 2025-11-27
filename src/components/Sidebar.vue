@@ -18,6 +18,11 @@ const menuItems = [
     route: '#activities'
   },
   {
+      title: '探索俱乐部',
+      icon: '⛰️',
+      route: '#clubs-section'
+    },
+  {
     title: '课程体系',
     icon: '📚',
     route: '#courses'
@@ -37,6 +42,11 @@ const menuItems = [
     icon: '📰',
     route: '#video-news-section'
   },
+  {
+      title: 'AI定制路线',
+      icon: '🤖',
+      route: '#ai-custom-section'
+    },
   {
     title: '个人中心',
     icon: '👤',

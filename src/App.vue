@@ -45,10 +45,8 @@ body {
   margin: 0;
   padding: 0;
   background-image: url('/mount-everest.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
+  background-size: auto;
+  background-repeat: repeat;
   overflow-x: hidden; /* 防止水平滚动条 */
 }
 

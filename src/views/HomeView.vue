@@ -5,6 +5,8 @@ import CourseSection from '../components/CourseSection.vue';
 import CertificateSection from '../components/CertificateSection.vue';
 import VideoNewsSection from '../components/VideoNewsSection.vue';
 import ActivitiesSection from '../components/ActivitiesSection.vue';
+import ClubsSection from '../components/ClubsSection.vue';
+import AICustomSection from '../components/AICustomSection.vue';
 import NavBar from '../components/NavBar.vue';
 
 const isScrolled = ref(false);
@@ -26,9 +28,12 @@ onMounted(() => {
     <HeroSection />
     
     <!-- 活动报名部分 -->
-    <ActivitiesSection />
+  <ActivitiesSection />
+  
+  <!-- 俱乐部板块 -->
+  <ClubsSection />
 
-    <!-- 课程体系部分 -->
+  <!-- 课程体系部分 -->
     <CourseSection />
 
     <!-- 证书展示部分 -->
@@ -36,6 +41,9 @@ onMounted(() => {
     
     <!-- 视频新闻部分 -->
     <VideoNewsSection />
+    
+    <!-- AI定制板块 -->
+    <AICustomSection />
   </div>
 </template>
 
