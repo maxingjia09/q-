@@ -160,6 +160,11 @@
 
 <script setup>
 import { ref } from 'vue';
+// 导入雪山攀登活动的图片
+import peak3Image from '@/assets/3.jpg';
+import peak4Image from '@/assets/4.jpg';
+import peak5Image from '@/assets/5.jpg';
+import peak2Image from '@/assets/2.jpg';
 
 // 活动类型切换
 const activeTab = ref('hiking');
@@ -264,7 +269,7 @@ const mountainExpeditions = [
     description: '入门级雪山，适合有一定徒步经验的登山爱好者。',
     altitude: '5276米',
     duration: '5-6天',
-    image: 'https://picsum.photos/id/36/600/400'
+    image: peak3Image
   },
   {
     id: 2,
@@ -273,7 +278,7 @@ const mountainExpeditions = [
     description: '昆仑山脉东段最高峰，6000米级雪山的经典入门之选。',
     altitude: '6178米',
     duration: '10-12天',
-    image: 'https://picsum.photos/id/37/600/400'
+    image: peak4Image
   },
   {
     id: 3,
@@ -282,7 +287,7 @@ const mountainExpeditions = [
     description: '帕米尔高原上的"冰山之父"，7000米级雪山的理想选择。',
     altitude: '7546米',
     duration: '20-25天',
-    image: 'https://picsum.photos/id/38/600/400'
+    image: peak5Image
   },
   {
     id: 4,
@@ -291,7 +296,7 @@ const mountainExpeditions = [
     description: '祁连山脉东段最高峰，适合有一定经验的登山者挑战。',
     altitude: '5254.5米',
     duration: '7-9天',
-    image: 'https://picsum.photos/id/40/600/400'
+    image: peak2Image
   }
 ];
 
