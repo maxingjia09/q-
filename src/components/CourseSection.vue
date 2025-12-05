@@ -62,7 +62,9 @@
 <style scoped>
 .course-section {
   padding: 5rem 0;
-  background-color: #f9f9f9;
+  background-color: transparent;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .container {
@@ -183,7 +185,7 @@
 
 .course-card {
   display: flex;
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

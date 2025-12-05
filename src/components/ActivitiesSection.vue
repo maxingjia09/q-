@@ -165,6 +165,16 @@ import peak3Image from '@/assets/3.jpg';
 import peak4Image from '@/assets/4.jpg';
 import peak5Image from '@/assets/5.jpg';
 import peak2Image from '@/assets/2.jpg';
+// 导入徒步活动的图片
+import hutiaoxiaImage from '@/assets/h.jpg';
+import yubengImage from '@/assets/y (1).jpg';
+import gonggaImage from '@/assets/g (2).jpg';
+import kanasImage from '@/assets/g (1).jpg';
+// 导入攀岩活动的图片
+import yangshuoImage from '@/assets/ys.PNG';
+import baiheImage from '@/assets/bh.PNG';
+import shiguImage from '@/assets/sg.PNG';
+import mashanImage from '@/assets/ms.PNG';
 
 // 活动类型切换
 const activeTab = ref('hiking');
@@ -189,7 +199,7 @@ const hikingRoutes = [
     description: '世界十大经典徒步路线之一，沿途可欣赏金沙江壮丽景色和哈巴雪山风光。',
     difficulty: '中等',
     duration: '2-3天',
-    image: 'https://picsum.photos/id/29/600/400'
+    image: hutiaoxiaImage
   },
   {
     id: 2,
@@ -198,7 +208,7 @@ const hikingRoutes = [
     description: '梅里雪山脚下的秘境，徒步穿越原始森林，感受雪山冰川的震撼。',
     difficulty: '较高',
     duration: '4-5天',
-    image: 'https://picsum.photos/id/30/600/400'
+    image: yubengImage
   },
   {
     id: 3,
@@ -207,7 +217,7 @@ const hikingRoutes = [
     description: '近距离接触蜀山之王，欣赏贡嘎雪山群峰和冰川的壮丽景观。',
     difficulty: '高',
     duration: '6-7天',
-    image: 'https://picsum.photos/id/31/600/400'
+    image: gonggaImage
   },
   {
     id: 4,
@@ -216,7 +226,7 @@ const hikingRoutes = [
     description: '穿越中国最美秋色，感受童话般的森林、湖泊和白桦林。',
     difficulty: '中等',
     duration: '3-4天',
-    image: 'https://picsum.photos/id/32/600/400'
+    image: kanasImage
   }
 ];
 
@@ -229,7 +239,7 @@ const rockClimbingSpots = [
     description: '世界闻名的攀岩胜地，拥有数百条不同难度的攀岩线路。',
     difficulty: '初级到高级',
     height: '10-50米',
-    image: 'https://picsum.photos/id/33/600/400'
+    image: yangshuoImage
   },
   {
     id: 2,
@@ -238,7 +248,7 @@ const rockClimbingSpots = [
     description: '北京周边最著名的攀岩场地，线路丰富，适合不同水平的攀岩者。',
     difficulty: '初级到中级',
     height: '5-30米',
-    image: 'https://picsum.photos/id/34/600/400'
+    image: baiheImage
   },
   {
     id: 3,
@@ -247,7 +257,7 @@ const rockClimbingSpots = [
     description: '金沙江畔的天然攀岩场，风景优美，线路独特。',
     difficulty: '中级到高级',
     height: '15-40米',
-    image: 'https://picsum.photos/id/35/600/400'
+    image: shiguImage
   },
   {
     id: 4,
@@ -256,7 +266,7 @@ const rockClimbingSpots = [
     description: '南方地区最大的室外攀岩公园，设施完善，适合家庭和团队活动。',
     difficulty: '初级到高级',
     height: '8-45米',
-    image: 'https://picsum.photos/id/39/600/400'
+    image: mashanImage
   }
 ];
 
@@ -352,8 +362,9 @@ const submitForm = () => {
 <style scoped>
 .activities-section {
   padding: 5rem 0;
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+  color: #ffffff;
 }
 
 .section-header {
@@ -363,7 +374,8 @@ const submitForm = () => {
 
 .section-title {
   font-size: 2.5rem;
-  color: #2c3e50;
+  color: #ffffff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
   margin-bottom: 1rem;
   display: inline-block;
   position: relative;
@@ -378,7 +390,7 @@ const submitForm = () => {
   transform: translateY(-50%);
   width: 60px;
   height: 2px;
-  background-color: #3498db;
+  background-color: #ffffff;
 }
 
 .section-title::before {
@@ -392,7 +404,7 @@ const submitForm = () => {
 .section-divider {
   width: 100px;
   height: 4px;
-  background-color: #3498db;
+  background-color: #ffffff;
   margin: 0 auto;
   border-radius: 2px;
 }
@@ -409,20 +421,21 @@ const submitForm = () => {
   padding: 1rem 2rem;
   border: none;
   background-color: transparent;
-  color: #666;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 1.2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .tab-button:hover {
-  color: #3498db;
+  color: #ffffff;
 }
 
 .tab-button.active {
-  color: #3498db;
+  color: #ffffff;
 }
 
 .tab-button.active::after {
@@ -433,7 +446,7 @@ const submitForm = () => {
   transform: translateX(-50%);
   width: 50%;
   height: 3px;
-  background-color: #3498db;
+  background-color: #ffffff;
   border-radius: 3px;
 }
 
@@ -463,32 +476,36 @@ const submitForm = () => {
 
 .climbing-tab-button {
   padding: 0.8rem 1.5rem;
-  border: 2px solid #e0e0e0;
-  background-color: transparent;
-  color: #666;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
   font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
   border-radius: 25px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 .climbing-tab-button:hover {
-  border-color: #3498db;
-  color: #3498db;
+  border-color: #ffffff;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .climbing-tab-button.active {
-  background-color: #3498db;
-  color: white;
-  border-color: #3498db;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #2c3e50;
+  border-color: #ffffff;
+  text-shadow: none;
 }
 
 /* 分类标题 */
 .category-title {
   font-size: 1.8rem;
-  color: #2c3e50;
+  color: #ffffff;
   margin-bottom: 2rem;
   text-align: center;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
 /* 路线卡片网格 */
@@ -501,10 +518,10 @@ const submitForm = () => {
 
 /* 路线卡片 */
 .route-card {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 

@@ -55,6 +55,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import gaImage from '../assets/ga.jpg';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -252,8 +253,30 @@ const browseActivities = () => {
   min-height: 100vh;
   width: 100%;
   padding: 2rem 1rem 2rem 300px; /* 避开固定侧边栏 */
-  background-color: #f8f9fa;
+  background-image: url('@/assets/ga.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   box-sizing: border-box;
+  position: relative;
+}
+
+/* 添加半透明遮罩层增强文字可读性 */
+.personal-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 0;
+}
+
+/* 确保内容显示在遮罩层上方 */
+.personal-container > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* 页面标题 */
@@ -268,17 +291,19 @@ const browseActivities = () => {
 .personal-content-wrapper {
   display: flex;
   gap: 2rem;
-  max-width: 1200px;
+  max-width: 1800px; /* 增加最大宽度以适应更多内容 */
+  width: 100%;
   margin: 0 auto;
 }
 
 /* 左侧个人信息卡片 */
 .user-info-card {
-  flex: 0 0 300px;
+  flex: 0 0 280px; /* 调整宽度，确保在各种屏幕尺寸下都能正常显示 */
   background-color: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 250px; /* 添加最小宽度，防止过度压缩 */
 }
 
 /* 右侧活动列表卡片 */
@@ -288,6 +313,7 @@ const browseActivities = () => {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 300px; /* 添加最小宽度，防止过度压缩 */
 }
 
 /* 通用标题样式 */

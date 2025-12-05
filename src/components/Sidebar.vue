@@ -131,10 +131,11 @@ const navigateTo = (targetRoute) => {
   left: 0;
   width: 280px;
   height: 100vh;
-  background-color: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
   overflow-y: auto;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 /* 确保侧边栏在小屏幕上仍然显示 */

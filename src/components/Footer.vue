@@ -63,9 +63,10 @@
 
 <style scoped>
 .footer-section {
-  background-color: #2c3e50;
+  background-color: rgba(44, 62, 80, 0.8);
   color: white;
   padding: 4rem 0 2rem;
+  backdrop-filter: blur(5px);
 }
 
 .container {

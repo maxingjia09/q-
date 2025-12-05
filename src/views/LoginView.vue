@@ -51,6 +51,12 @@
       </div>
     </div>
   </div>
+  
+  <!-- 攀登动画 -->
+  <ClimbingAnimation 
+    :is-visible="showClimbingAnimation" 
+    @animation-end="handleAnimationEnd"
+  />
 </template>
 
 <script setup>
@@ -58,6 +64,7 @@ import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { defineEmits } from 'vue';
+import ClimbingAnimation from '../components/ClimbingAnimation.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -71,6 +78,7 @@ const form = reactive({
 
 const errors = reactive({});
 const isLoading = ref(false);
+const showClimbingAnimation = ref(false);
 
 const validateForm = () => {
   const newErrors = {};
@@ -111,25 +119,30 @@ const handleSubmit = async () => {
       await authStore.initAuth();
       console.log('After initAuth, isAuthenticated:', authStore.isAuthenticated);
       
-      // 登录成功后触发事件，让父组件（如AuthModal和NavBar）处理跳转逻辑
-      emit('login-success');
-      
-      // 确保直接访问登录页时也能跳转到个人中心
-      // 这个逻辑不会影响通过模态框登录的情况，因为父组件会处理跳转
-      setTimeout(() => {
-        // 只有在直接访问登录页时才执行跳转
-        // 避免在模态框模式下双重跳转
-        if (window.location.pathname === '/login') {
-          console.log('Direct login page, performing full page refresh to /personal');
-          window.location.href = '/personal';
-        }
-      }, 100);
+      // 显示攀登动画
+      showClimbingAnimation.value = true;
     } catch (error) {
       console.error('Login failed:', error.message);
       errors.general = error.message || '登录失败，请检查账号密码';
     } finally {
       isLoading.value = false;
     }
+  };
+
+  const handleAnimationEnd = () => {
+    // 动画结束后触发事件，让父组件处理跳转
+    emit('login-success');
+    
+    // 确保直接访问登录页时也能跳转到个人中心
+    // 这个逻辑不会影响通过模态框登录的情况，因为父组件会处理跳转
+    setTimeout(() => {
+      // 只有在直接访问登录页时才执行跳转
+      // 避免在模态框模式下双重跳转
+      if (window.location.pathname === '/login') {
+        console.log('Direct login page, performing full page refresh to /personal');
+        window.location.href = '/personal';
+      }
+    }, 100);
   };
 </script>
 

@@ -4,6 +4,7 @@ import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
 import Sidebar from './components/Sidebar.vue';
 import Footer from './components/Footer.vue';
+import zfImage from './assets/zf.jpg';
 
 // 监听滚动事件
 const handleScroll = () => {
@@ -44,9 +45,11 @@ body {
   color: #2c3e50;
   margin: 0;
   padding: 0;
-  background-image: url('/mount-everest.jpg');
-  background-size: auto;
-  background-repeat: repeat;
+  background-image: url('@/assets/zf.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   overflow-x: hidden; /* 防止水平滚动条 */
 }
 

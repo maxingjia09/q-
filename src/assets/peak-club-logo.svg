@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2980b9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ecf0f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#bdc3c7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆 -->
+  <circle cx="100" cy="100" r="95" fill="url(#bgGradient)" />
+  
+  <!-- 山峰 -->
+  <path d="M50 150 L100 70 L150 150 Z" fill="url(#mountainGradient)" stroke="#7f8c8d" stroke-width="2" />
+  <path d="M70 150 L100 90 L130 150 Z" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" />
+  
+  <!-- 登山者 -->
+  <circle cx="98" cy="110" r="4" fill="#e74c3c" />
+  <path d="M98 114 L98 125" stroke="#2c3e50" stroke-width="2" />
+  <path d="M98 118 L92 124" stroke="#2c3e50" stroke-width="2" />
+  <path d="M98 118 L104 124" stroke="#2c3e50" stroke-width="2" />
+  <path d="M98 125 L95 135" stroke="#2c3e50" stroke-width="2" />
+  <path d="M98 125 L101 135" stroke="#2c3e50" stroke-width="2" />
+  
+  <!-- 文字 -->
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white" text-anchor="middle">巅峰户外俱乐部</text>
+</svg>

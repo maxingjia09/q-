@@ -73,6 +73,11 @@
 </template>
 
 <script>
+// 导入俱乐部logo
+import peakClubLogo from '@/assets/peak-club-logo.svg';
+import explorerClubLogo from '@/assets/explorer-club-logo.svg';
+import braveClubLogo from '@/assets/brave-club-logo.svg';
+
 export default {
   name: 'ClubsSection',
   data() {
@@ -83,7 +88,7 @@ export default {
           name: '巅峰户外俱乐部',
           rating: 4.8,
           reviewCount: 236,
-          image: '/mount-everest.jpg',
+          image: peakClubLogo,
           highlights: [
             '10年专业登山经验',
             '国家级教练团队',
@@ -107,7 +112,7 @@ export default {
           name: '探索者户外联盟',
           rating: 4.6,
           reviewCount: 189,
-          image: '/new-mount-everest.jpg',
+          image: explorerClubLogo,
           highlights: [
             '野外生存技能培训',
             '多样化探险活动',
@@ -131,7 +136,7 @@ export default {
           name: '勇者户外团队',
           rating: 4.7,
           reviewCount: 156,
-          image: '/mount-everest.jpg',
+          image: braveClubLogo,
           highlights: [
             '全季节户外活动',
             '青少年训练营',

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="modal-overlay" @click.self="closeModal">
+  <div v-if="isVisible && !showClimbingAnimation" class="modal-overlay" @click.self="closeModal">
     <div class="modal-content">
       <div class="modal-header">
         <h3 class="modal-title">{{ currentView === 'login' ? '用户登录' : '用户注册' }}</h3>
@@ -11,12 +11,19 @@
       </div>
     </div>
   </div>
+  
+  <!-- 攀登动画 -->
+  <ClimbingAnimation 
+    :is-visible="showClimbingAnimation" 
+    @animation-end="handleAnimationEnd"
+  />
 </template>
 
 <script setup>
 import { ref, defineEmits, defineProps, watch } from 'vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
+import ClimbingAnimation from './ClimbingAnimation.vue';
 
 const props = defineProps({
   isVisible: {
@@ -32,6 +39,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'login-success', 'register-success']);
 
 const currentView = ref(props.initialView);
+const showClimbingAnimation = ref(false);
 
 // 监听initialView变化，确保每次打开弹窗时使用正确的视图类型
 watch(() => props.initialView, (newView) => {
@@ -54,10 +62,8 @@ const switchToLogin = () => {
 
 const handleLoginSuccess = () => {
   console.log('Login success event received in AuthModal');
-  // 先发出登录成功事件，让父组件（如NavBar）处理跳转逻辑
-  emit('login-success');
-  // 然后再关闭模态框
-  closeModal();
+  // 显示攀登动画
+  showClimbingAnimation.value = true;
 };
 
 const handleRegisterSuccess = () => {
@@ -66,6 +72,12 @@ const handleRegisterSuccess = () => {
   // 可以考虑发出事件通知父组件
   emit('register-success');
 };
+
+const handleAnimationEnd = () => {
+    // 动画结束后触发事件并关闭模态框
+    emit('login-success');
+    handleClose();
+  };
 </script>
 
 <style scoped>
