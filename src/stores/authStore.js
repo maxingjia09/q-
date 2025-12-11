@@ -8,23 +8,37 @@ export const useAuthStore = defineStore('auth', () => {
   const points = ref(0); // 用户积分
   const isAuthenticated = computed(() => !!token.value);
 
-  // 模拟用户数据
-  const mockUsers = JSON.parse(localStorage.getItem('mockUsers')) || [
+  // 模拟用户数据 - 只保留管理员账号，普通用户需要注册
+  const defaultUsers = [
     {
       id: 1,
       username: 'admin',
-      email: 'admin@example.com',
-      password: 'password123',
-      points: 1000
-    },
-    {
-      id: 2,
-      username: 'testuser',
-      email: 'test@example.com',
-      password: '123456',
-      points: 500
+      email: 'mmm@qq.com',
+      password: '20041209',
+      points: 1000,
+      isAdmin: true // 管理员标识
     }
   ];
+  
+  // 从localStorage获取数据，如果不存在则使用默认数据
+  let mockUsers = JSON.parse(localStorage.getItem('mockUsers')) || [...defaultUsers];
+  
+  // 移除默认的普通用户账号（ID为2）
+  mockUsers = mockUsers.filter(user => user.id !== 2);
+  
+  // 确保管理员账号始终存在且信息正确
+  const adminIndex = mockUsers.findIndex(u => u.id === 1);
+  if (adminIndex === -1) {
+    // 如果管理员账号不存在，添加到用户列表
+    mockUsers.push(defaultUsers[0]);
+  } else {
+    // 如果管理员账号存在，更新信息确保正确
+    mockUsers[adminIndex] = { ...mockUsers[adminIndex], ...defaultUsers[0] };
+  }
+  
+  // 保存到localStorage
+  localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+
 
   // 登录
   const login = async (email, password) => {
@@ -49,7 +63,8 @@ export const useAuthStore = defineStore('auth', () => {
       id: foundUser.id,
       username: foundUser.username,
       email: foundUser.email,
-      points: foundUser.points
+      points: foundUser.points,
+      isAdmin: foundUser.isAdmin // 保存管理员标识
     };
     points.value = foundUser.points;
     
@@ -153,7 +168,8 @@ export const useAuthStore = defineStore('auth', () => {
           id: foundUser.id,
           username: foundUser.username,
           email: foundUser.email,
-          points: foundUser.points
+          points: foundUser.points,
+          isAdmin: foundUser.isAdmin // 保存管理员标识
         };
         points.value = foundUser.points;
         console.log('User loaded successfully:', user.value);

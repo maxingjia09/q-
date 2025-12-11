@@ -20,7 +20,7 @@
 
         <div class="course-card">
           <div class="course-image">
-            <img src="https://picsum.photos/id/30/600/400" alt="山地救援课程">
+            <img src="@/assets/sd.PNG" alt="山地救援课程">
           </div>
           <div class="course-content">
             <h3 class="course-title">山地救援课程</h3>
@@ -31,7 +31,7 @@
 
         <div class="course-card">
           <div class="course-image">
-            <img src="https://picsum.photos/id/31/600/400" alt="山地生存课程">
+            <img src="@/assets/sc.PNG" alt="山地生存课程">
           </div>
           <div class="course-content">
             <h3 class="course-title">山地生存课程</h3>
@@ -42,7 +42,7 @@
 
         <div class="course-card">
           <div class="course-image">
-            <img src="https://picsum.photos/id/32/600/400" alt="青少年课程">
+            <img src="@/assets/qsn.PNG" alt="青少年课程">
           </div>
           <div class="course-content">
             <h3 class="course-title">青少年课程</h3>

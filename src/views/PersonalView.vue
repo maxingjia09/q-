@@ -25,6 +25,36 @@
             <span class="info-label">会员等级:</span>
             <span class="info-value">普通会员</span>
           </div>
+          <div class="info-row">
+            <span class="info-label">当前积分:</span>
+            <span class="info-value points-value">{{ points }} 积分</span>
+          </div>
+        </div>
+        
+        <!-- 充值板块 -->
+        <div class="recharge-section">
+          <h3 class="recharge-title">账户充值</h3>
+          <div class="recharge-input-group">
+            <label for="rechargeAmount">充值金额</label>
+            <input 
+              type="number" 
+              id="rechargeAmount" 
+              v-model="rechargeAmount" 
+              placeholder="请输入充值金额" 
+              min="1" 
+              step="1" 
+              :disabled="isRecharging"
+            >
+            <p class="error-message" v-if="rechargeError">{{ rechargeError }}</p>
+          </div>
+          <button 
+            class="recharge-btn" 
+            @click="handleRecharge" 
+            :disabled="isRecharging || !authStore.isAuthenticated"
+          >
+            {{ isRecharging ? '充值中...' : '立即充值' }}
+          </button>
+          <p class="recharge-hint" v-if="!authStore.isAuthenticated">请先登录后再进行充值</p>
         </div>
       </div>
       
@@ -47,6 +77,28 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+  
+  <!-- 支付方式选择模态框 -->
+  <div class="modal-overlay" v-if="showPaymentModal" @click="closePaymentModal">
+    <div class="modal-content" @click.stop>
+      <h3>选择支付方式</h3>
+      <div class="payment-methods">
+        <button 
+          class="payment-btn wechat-btn" 
+          @click="selectPaymentMethod('wechat')"
+        >
+          微信支付
+        </button>
+        <button 
+          class="payment-btn alipay-btn" 
+          @click="selectPaymentMethod('alipay')"
+        >
+          支付宝支付
+        </button>
+      </div>
+      <button class="close-btn" @click="closePaymentModal">取消</button>
     </div>
   </div>
 </template>
@@ -291,19 +343,17 @@ const browseActivities = () => {
 .personal-content-wrapper {
   display: flex;
   gap: 2rem;
-  max-width: 1800px; /* 增加最大宽度以适应更多内容 */
   width: 100%;
   margin: 0 auto;
 }
 
 /* 左侧个人信息卡片 */
 .user-info-card {
-  flex: 0 0 280px; /* 调整宽度，确保在各种屏幕尺寸下都能正常显示 */
+  flex: 0 0 350px;
   background-color: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 250px; /* 添加最小宽度，防止过度压缩 */
 }
 
 /* 右侧活动列表卡片 */
@@ -313,7 +363,6 @@ const browseActivities = () => {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 300px; /* 添加最小宽度，防止过度压缩 */
 }
 
 /* 通用标题样式 */
@@ -478,6 +527,168 @@ const browseActivities = () => {
 
 .cancel-btn:hover {
   background-color: #c0392b;
+}
+
+/* 积分显示样式 */
+.points-value {
+  color: #e67e22;
+  font-weight: 600;
+}
+
+/* 充值板块样式 */
+.recharge-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #f0f0f0;
+}
+
+.recharge-title {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.recharge-input-group {
+  margin-bottom: 1.5rem;
+}
+
+.recharge-input-group label {
+  display: block;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.recharge-input-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.recharge-input-group input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.recharge-btn {
+  width: 100%;
+  padding: 1rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.recharge-btn:hover:not(:disabled) {
+  background-color: #2980b9;
+}
+
+.recharge-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.recharge-hint {
+  color: #95a5a6;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0.8rem;
+}
+
+/* 支付模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content h3 {
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.3rem;
+}
+
+.payment-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.payment-btn {
+  padding: 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.payment-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.wechat-btn {
+  background-color: #07c160;
+  color: white;
+}
+
+.alipay-btn {
+  background-color: #1677ff;
+  color: white;
+}
+
+.close-btn {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #ecf0f1;
+  color: #2c3e50;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.close-btn:hover {
+  background-color: #bdc3c7;
 }
 
 /* 响应式设计 */
