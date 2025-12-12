@@ -244,6 +244,9 @@
 </template>
 
 <script>
+// 导入活动数据
+import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+
 export default {
   name: 'AICustomSection',
   data() {
@@ -297,164 +300,143 @@ export default {
     
     // 根据用户信息生成路线推荐
     generateRouteSuggestions() {
-      // 基于用户输入生成推荐路线
+      // 基于用户输入从活动报名中选择推荐路线
       const routes = []
       const userAge = parseInt(this.userInfo.age)
       const isBeginner = this.userInfo.experience === 'beginner'
       const isEasyIntensity = this.userInfo.intensity === 'easy'
+      const isMediumIntensity = this.userInfo.intensity === 'medium'
+      const isHighIntensity = this.userInfo.intensity === 'high'
       
-      // 根据运动类型和用户信息生成不同的推荐
+      // 根据运动类型选择对应的活动数据
+      let availableRoutes = []
       switch (this.userInfo.sportType) {
         case 'hiking':
-          if (isBeginner || isEasyIntensity || userAge > 50) {
-            routes.push(
-              {
-                id: 1,
-                name: '城市周边轻松徒步',
-                image: '/mount-everest.jpg',
-                location: '北京香山',
-                duration: '3-4小时',
-                intensity: '轻松',
-                difficulty: '1',
-                description: '适合初学者的平缓山路，沿途风景优美，空气清新，海拔上升适中，全程约8公里。',
-                reason: `基于您的运动经验和偏好，为您推荐这条轻松的徒步路线。路线难度适中，适合${this.userInfo.age}岁${this.userInfo.gender === 'male' ? '男性' : '女性'}的初学者，能够在享受自然的同时，逐步提升体能。`,
-                suitableFor: ['初学者', '周末休闲', '家庭出游', '摄影爱好者']
-              },
-              {
-                id: 2,
-                name: '森林公园漫步',
-                image: '/new-mount-everest.jpg',
-                location: '奥林匹克森林公园',
-                duration: '2-3小时',
-                intensity: '非常轻松',
-                difficulty: '1',
-                description: '平坦的步道，茂密的树林，适合散步和轻度徒步，全程约6公里，有休息区和卫生间。',
-                reason: '这条路线完全平坦，适合各种年龄段的户外活动爱好者，特别是如果您希望以轻松的方式开始户外活动。',
-                suitableFor: ['所有人', '休闲散步', '晨练', '带宠物']
-              }
-            )
-          } else {
-            routes.push(
-              {
-                id: 3,
-                name: '高山草甸徒步',
-                image: '/mount-everest.jpg',
-                location: '河北小五台',
-                duration: '1天',
-                intensity: '中等',
-                difficulty: '3',
-                description: '高山草甸景观，视野开阔，全程约15公里，有一定的爬升，需要良好的体力。',
-                reason: '对于有一定经验的徒步爱好者，这条路线提供了壮丽的高山景色和适度的挑战，符合您的运动强度偏好。',
-                suitableFor: ['有经验徒步者', '摄影爱好者', '自然探索']
-              },
-              {
-                id: 4,
-                name: '长城徒步',
-                image: '/new-mount-everest.jpg',
-                location: '箭扣长城',
-                duration: '1天',
-                intensity: '具挑战性',
-                difficulty: '4',
-                description: '未修复的野长城，部分路段需要攀爬，景色壮观，全程约12公里，需要专业装备。',
-                reason: '这条路线提供了历史文化体验和户外挑战的完美结合，适合寻求刺激的有经验徒步者。',
-                suitableFor: ['高级徒步者', '摄影爱好者', '历史文化爱好者']
-              }
-            )
-          }
+          availableRoutes = hikingRoutes
           break
-          
         case 'mountainClimbing':
-          if (isBeginner || isEasyIntensity) {
-            routes.push(
-              {
-                id: 5,
-                name: '初级登山体验',
-                image: '/mount-everest.jpg',
-                location: '北京妙峰山',
-                duration: '1天',
-                intensity: '中等',
-                difficulty: '2',
-                description: '适合初级登山者的路线，有明确的步道，海拔上升约800米，全程约10公里。',
-                reason: '作为初学者的登山起点，这条路线安全系数高，同时能够体验登山的乐趣和成就感。',
-                suitableFor: ['初级登山者', '周末活动', '团队建设']
-              }
-            )
-          } else {
-            routes.push(
-              {
-                id: 6,
-                name: '高山攀登',
-                image: '/new-mount-everest.jpg',
-                location: '北京灵山',
-                duration: '2天',
-                intensity: '高',
-                difficulty: '4',
-                description: '北京地区最高峰，海拔2303米，需要两天时间，有一定的技术要求，需要专业指导。',
-                reason: '对于有经验的登山者，这条路线提供了足够的挑战和成就感，能够测试您的体能和技巧。',
-                suitableFor: ['有经验登山者', '挑战自我', '高山摄影']
-              }
-            )
-          }
+          availableRoutes = mountainExpeditions
           break
-          
-        case 'cycling':
-          routes.push(
-            {
-              id: 7,
-              name: isBeginner ? '城市周边骑行' : '山地自行车越野',
-              image: '/mount-everest.jpg',
-              location: isBeginner ? '温榆河绿道' : '昌平山地车公园',
-              duration: isBeginner ? '3-4小时' : '1天',
-              intensity: isBeginner ? '轻松' : '中等',
-              difficulty: isBeginner ? '1' : '3',
-              description: isBeginner ? 
-                '平坦的自行车专用道，沿途风景优美，距离适中，适合休闲骑行。' : 
-                '专业的山地车赛道，有起伏和障碍，适合有经验的骑行爱好者。',
-              reason: isBeginner ? 
-                '这条路线为骑行初学者提供了安全舒适的环境，能够享受骑行的乐趣同时锻炼体能。' : 
-                '根据您的骑行经验，这条山地路线能够提供足够的挑战和刺激，同时风景优美。',
-              suitableFor: isBeginner ? 
-                ['骑行初学者', '家庭出游', '休闲健身'] : 
-                ['山地车爱好者', '越野骑行', '技巧提升']
-            }
-          )
+        case 'rockClimbing':
+          availableRoutes = rockClimbingSpots
           break
-          
         default:
-          // 综合户外推荐
-          routes.push(
-            {
-              id: 8,
-              name: '综合户外体验',
-              image: '/mount-everest.jpg',
-              location: '北京怀柔户外基地',
-              duration: '1天',
-              intensity: '中等',
-              difficulty: '2',
-              description: '结合徒步、攀岩、绳索等多种户外活动，一站式体验户外运动的乐趣。',
-              reason: `根据您的综合信息，为您推荐这个户外基地，可以尝试多种活动，找到最适合您的户外运动方式。`,
-              suitableFor: ['户外爱好者', '团队建设', '初次体验', '周末出游']
-            }
-          )
+          // 如果是其他运动类型，合并所有路线
+          availableRoutes = [...hikingRoutes, ...mountainExpeditions, ...rockClimbingSpots]
       }
       
-      // 如果推荐太少，补充一些通用推荐
-      while (routes.length < 3) {
-        routes.push({
-          id: 10 + routes.length,
-          name: `通用户外路线${routes.length + 1}`,
-          image: routes.length % 2 === 0 ? '/mount-everest.jpg' : '/new-mount-everest.jpg',
-          location: ['北京西山', '密云水库', '延庆八达岭'][routes.length % 3],
-          duration: ['半天', '一天', '两天'][routes.length % 3],
-          intensity: ['轻松', '中等', '有挑战'][routes.length % 3],
-          difficulty: (routes.length % 3) + 1,
-          description: `这是一条适合${this.userInfo.experience === 'beginner' ? '初学者' : '有经验者'}的路线，风景优美，环境舒适。`,
-          reason: `基于您的信息，我们推荐这条路线，它能够满足您的户外运动需求。`,
-          suitableFor: ['户外爱好者', '摄影', '休闲', '健身']
-        })
+      // 根据用户经验和强度偏好筛选路线
+      let filteredRoutes = []
+      
+      // 为不同难度的路线分配难度等级数字
+      const assignDifficultyLevel = (route) => {
+        const difficultyText = route.difficulty
+        if (difficultyText.includes('初级') || difficultyText === '中等' || difficultyText === '入门级') {
+          return 2
+        } else if (difficultyText.includes('中级') || difficultyText === '较高') {
+          return 3
+        } else if (difficultyText.includes('高级') || difficultyText === '高') {
+          return 4
+        } else {
+          return 2 // 默认中等难度
+        }
+      }
+      
+      // 筛选路线
+      for (const route of availableRoutes) {
+        const difficultyLevel = assignDifficultyLevel(route)
+        
+        // 根据用户经验和强度偏好匹配路线
+        if ((isBeginner && difficultyLevel <= 2) || 
+            (!isBeginner && isEasyIntensity && difficultyLevel <= 2) || 
+            (!isBeginner && isMediumIntensity && difficultyLevel <= 3) || 
+            (!isBeginner && isHighIntensity)) {
+          
+          // 将活动数据转换为推荐路线格式
+          const recommendedRoute = {
+            id: route.id,
+            name: route.name,
+            image: route.image,
+            location: route.location,
+            duration: route.duration,
+            intensity: difficultyLevel <= 2 ? '轻松' : (difficultyLevel === 3 ? '中等' : '具挑战性'),
+            difficulty: difficultyLevel.toString(),
+            description: route.description,
+            reason: this.generateReason(route, difficultyLevel),
+            suitableFor: this.generateSuitableFor(route, difficultyLevel)
+          }
+          
+          routes.push(recommendedRoute)
+        }
+      }
+      
+      // 如果筛选后的路线不足3个，添加更多路线
+      while (routes.length < 3 && availableRoutes.length > routes.length) {
+        // 从可用路线中随机选择未添加的路线
+        const remainingRoutes = availableRoutes.filter(r => !routes.some(rec => rec.id === r.id))
+        if (remainingRoutes.length === 0) break
+        
+        const randomRoute = remainingRoutes[Math.floor(Math.random() * remainingRoutes.length)]
+        const difficultyLevel = assignDifficultyLevel(randomRoute)
+        
+        const recommendedRoute = {
+          id: randomRoute.id,
+          name: randomRoute.name,
+          image: randomRoute.image,
+          location: randomRoute.location,
+          duration: randomRoute.duration,
+          intensity: difficultyLevel <= 2 ? '轻松' : (difficultyLevel === 3 ? '中等' : '具挑战性'),
+          difficulty: difficultyLevel.toString(),
+          description: randomRoute.description,
+          reason: this.generateReason(randomRoute, difficultyLevel),
+          suitableFor: this.generateSuitableFor(randomRoute, difficultyLevel)
+        }
+        
+        routes.push(recommendedRoute)
       }
       
       return routes
+    },
+    
+    // 生成推荐理由
+    generateReason(route, difficultyLevel) {
+      const userAge = parseInt(this.userInfo.age)
+      const isBeginner = this.userInfo.experience === 'beginner'
+      
+      if (isBeginner) {
+        return `基于您的初学者经验，为您推荐${route.name}。这条路线难度适中，适合${userAge}岁的户外运动初学者，能够在安全的环境中享受户外活动的乐趣。`
+      } else if (difficultyLevel === 2 || difficultyLevel === 3) {
+        return `根据您的运动经验和强度偏好，为您推荐${route.name}。这条路线提供了适度的挑战，能够让您在欣赏美景的同时提升运动能力。`
+      } else {
+        return `作为有经验的户外运动爱好者，${route.name}能够为您提供足够的挑战，让您充分体验户外运动的刺激与乐趣。`
+      }
+    },
+    
+    // 生成适合人群
+    generateSuitableFor(route, difficultyLevel) {
+      const suitableFor = []
+      
+      if (difficultyLevel <= 2) {
+        suitableFor.push('初学者')
+        suitableFor.push('周末休闲')
+      }
+      
+      if (difficultyLevel <= 3) {
+        suitableFor.push('有经验爱好者')
+        suitableFor.push('摄影爱好者')
+      }
+      
+      if (difficultyLevel >= 3) {
+        suitableFor.push('挑战自我')
+      }
+      
+      if (route.duration && route.duration.includes('天')) {
+        suitableFor.push('多日行程')
+      } else {
+        suitableFor.push('单日活动')
+      }
+      
+      return suitableFor
     },
     
     // 查看路线详情

@@ -304,7 +304,7 @@ const browseActivities = () => {
 .personal-container {
   min-height: 100vh;
   width: 100%;
-  padding: 2rem 1rem 2rem 300px; /* 避开固定侧边栏 */
+  padding: 2rem 0 2rem 300px; /* 避开固定侧边栏，右侧不留内边距 */
   background-image: url('@/assets/ga.jpg');
   background-size: cover;
   background-position: center;
@@ -344,7 +344,9 @@ const browseActivities = () => {
   display: flex;
   gap: 2rem;
   width: 100%;
-  margin: 0 auto;
+  margin: 0;
+  padding-right: 1rem; /* 在wrapper上添加右侧内边距 */
+  box-sizing: border-box;
 }
 
 /* 左侧个人信息卡片 */
@@ -363,6 +365,8 @@ const browseActivities = () => {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%; /* 确保卡片宽度为100% */
+  max-width: none; /* 移除可能的最大宽度限制 */
 }
 
 /* 通用标题样式 */

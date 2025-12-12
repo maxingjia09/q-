@@ -1,9 +1,11 @@
 <script setup>
 import { useRouter, useRoute } from 'vue-router';
 import { computed } from 'vue';
+import { useAuthStore } from '../stores/authStore';
 
 const router = useRouter();
 const route = useRoute();
+const authStore = useAuthStore();
 
 // 侧边栏菜单项
 const menuItems = [
@@ -51,8 +53,42 @@ const menuItems = [
     title: '个人中心',
     icon: '👤',
     route: '/personal'
+  },
+  {
+    title: '管理员板块',
+    icon: '🔧',
+    isSectionHeader: true
+  },
+  {
+    title: '管理员仪表盘',
+    icon: '📊',
+    route: '/admin/dashboard',
+    isAdminOnly: true
+  },
+  {
+    title: '管理员登录',
+    icon: '🔑',
+    route: '/admin/login',
+    isAdminOnly: true
   }
 ];
+
+// 计算最终要显示的菜单项，根据用户权限控制
+const visibleMenuItems = computed(() => {
+  if (!authStore.isAuthenticated) {
+    // 未登录用户只能看到管理员登录选项，看不到管理员板块标题和仪表盘
+    return menuItems.filter(item => 
+      item.title === '管理员登录' || 
+      (!item.isAdminOnly && !item.isSectionHeader)
+    );
+  } else if (authStore.user?.isAdmin) {
+    // 管理员可以看到所有菜单项
+    return menuItems;
+  } else {
+    // 普通用户看不到任何管理员相关项
+    return menuItems.filter(item => !item.isAdminOnly && !item.isSectionHeader);
+  }
+});
 
 // 判断菜单项是否处于活动状态
 const isActive = computed(() => (itemRoute) => {
@@ -98,20 +134,28 @@ const navigateTo = (targetRoute) => {
     <nav class="sidebar-nav">
       <ul class="sidebar-menu">
         <li 
-          v-for="item in menuItems" 
+          v-for="item in visibleMenuItems" 
           :key="item.title"
-          class="sidebar-item"
+          :class="['sidebar-item', { 'sidebar-section-header': item.isSectionHeader }]"
         >
-          <a 
-            :href="item.route"
-            class="sidebar-link"
-            :class="{ active: isActive(item.route) }"
-            @click.prevent="navigateTo(item.route)"
-            :target="item.route.startsWith('#') ? '_self' : undefined"
-          >
-            <span class="sidebar-icon">{{ item.icon }}</span>
-            <span class="sidebar-text">{{ item.title }}</span>
-          </a>
+          <template v-if="item.isSectionHeader">
+            <div class="sidebar-section-header-text">
+              <span class="sidebar-icon">{{ item.icon }}</span>
+              <span class="sidebar-text">{{ item.title }}</span>
+            </div>
+          </template>
+          <template v-else>
+            <a 
+              :href="item.route"
+              class="sidebar-link"
+              :class="{ active: isActive(item.route) }"
+              @click.prevent="navigateTo(item.route)"
+              :target="item.route.startsWith('#') ? '_self' : undefined"
+            >
+              <span class="sidebar-icon">{{ item.icon }}</span>
+              <span class="sidebar-text">{{ item.title }}</span>
+            </a>
+          </template>
         </li>
       </ul>
     </nav>
@@ -213,6 +257,24 @@ const navigateTo = (targetRoute) => {
 
 .sidebar-text {
   font-size: 1rem;
+}
+
+/* 管理员板块标题样式 */
+.sidebar-section-header {
+  margin: 1rem 0;
+}
+
+.sidebar-section-header-text {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: #3498db;
+  font-weight: 600;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-left: 3px solid #3498db;
+  background-color: rgba(52, 152, 219, 0.1);
 }
 
 /* 侧边栏底部 */

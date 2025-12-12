@@ -55,8 +55,13 @@ const router = createRouter({
 })
 
 // 添加路由守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
+  
+  // 确保认证状态已经初始化
+  if (!authStore.isAuthenticated && !authStore.user && localStorage.getItem('authToken')) {
+    await authStore.initAuth();
+  }
   
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (!authStore.isAuthenticated) {

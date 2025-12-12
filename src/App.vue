@@ -103,6 +103,12 @@ body {
   margin: 0 auto;
 }
 
+/* 个人中心页面例外 - 允许右侧拓展到最右侧 */
+.main-content > .personal-container {
+  max-width: none; /* 移除最大宽度限制 */
+  margin: 0; /* 移除居中对齐 */
+}
+
 /* 通用按钮样式 */
 .btn {
   padding: 0.5rem 1.2rem;
