@@ -76,7 +76,7 @@ const handleRegisterSuccess = () => {
 const handleAnimationEnd = () => {
     // 动画结束后触发事件并关闭模态框
     emit('login-success');
-    handleClose();
+    closeModal();
   };
 </script>
 

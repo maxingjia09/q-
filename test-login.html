@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录测试</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <h2>登录测试</h2>
+        <input type="email" v-model="email" placeholder="邮箱" style="margin: 5px; padding: 8px;"><br>
+        <input type="password" v-model="password" placeholder="密码" style="margin: 5px; padding: 8px;"><br>
+        <button @click="testLogin" style="margin: 5px; padding: 8px 15px;">测试登录</button>
+        <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
+            <h3>结果:</h3>
+            <pre>{{ result }}</pre>
+        </div>
+        <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
+            <h3>localStorage 内容:</h3>
+            <pre>{{ localStorageContent }}</pre>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const email = ref('mmm@qq.com');
+                const password = ref('20041209');
+                const result = ref('');
+                const localStorageContent = ref('');
+
+                const updateLocalStorageContent = () => {
+                    try {
+                        const mockUsers = localStorage.getItem('mockUsers');
+                        const authToken = localStorage.getItem('authToken');
+                        const lastLoginEmail = localStorage.getItem('lastLoginEmail');
+                        localStorageContent.value = JSON.stringify({
+                            mockUsers: mockUsers ? JSON.parse(mockUsers) : null,
+                            authToken,
+                            lastLoginEmail
+                        }, null, 2);
+                    } catch (error) {
+                        localStorageContent.value = 'Error reading localStorage: ' + error.message;
+                    }
+                };
+
+                const testLogin = async () => {
+                    result.value = '正在测试登录...';
+                    
+                    try {
+                        // 模拟登录过程
+                        const mockUsers = JSON.parse(localStorage.getItem('mockUsers')) || [];
+                        console.log('Available users:', mockUsers);
+                        
+                        const foundUser = mockUsers.find(u => u.email === email.value && u.password === password.value);
+                        
+                        if (foundUser) {
+                            result.value = '登录成功！\n用户信息: ' + JSON.stringify(foundUser, null, 2);
+                            // 模拟保存token
+                            localStorage.setItem('authToken', 'mock-token-' + Date.now());
+                            localStorage.setItem('lastLoginEmail', email.value);
+                            updateLocalStorageContent();
+                        } else {
+                            result.value = '登录失败: 邮箱或密码不正确';
+                        }
+                    } catch (error) {
+                        result.value = '测试过程中出现错误: ' + error.message;
+                    }
+                };
+
+                onMounted(() => {
+                    updateLocalStorageContent();
+                });
+
+                return {
+                    email,
+                    password,
+                    result,
+                    localStorageContent,
+                    testLogin,
+                    updateLocalStorageContent
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
