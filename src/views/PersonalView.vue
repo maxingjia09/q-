@@ -115,40 +115,13 @@ const authStore = useAuthStore();
 // 状态
 const user = computed(() => authStore.user);
 const points = computed(() => authStore.points);
+const joinedActivities = computed(() => authStore.joinedActivities);
 const rechargeAmount = ref(0);
 const isRecharging = ref(false);
 const rechargeError = ref('');
 const showPaymentModal = ref(false);
 const selectedPaymentMethod = ref('');
 const showLoginPrompt = ref(false);
-
-// 模拟用户参与的活动数据 - 确保始终有数据显示
-const joinedActivities = ref([
-  {
-    id: 1,
-    name: '四姑娘山徒步穿越',
-    location: '四川阿坝',
-    date: '2023-10-15 至 2023-10-20',
-    status: '已完成',
-    image: 'https://picsum.photos/id/29/400/300'
-  },
-  {
-    id: 2,
-    name: '阳朔攀岩基地体验',
-    location: '广西桂林',
-    date: '2024-01-20 至 2024-01-22',
-    status: '进行中',
-    image: 'https://picsum.photos/id/33/400/300'
-  },
-  {
-    id: 3,
-    name: '岗什卡雪山攀登',
-    location: '青海海北',
-    date: '2024-03-10 至 2024-03-18',
-    status: '进行中',
-    image: 'https://picsum.photos/id/40/400/300'
-  }
-]);
 
 // 格式化注册时间（模拟）
 const formattedRegisterTime = computed(() => {
@@ -165,22 +138,6 @@ onMounted(async () => {
   console.log('PersonalView mounted');
   console.log('isAuthenticated:', authStore.isAuthenticated);
   console.log('Joined activities count:', joinedActivities.value.length);
-  
-  // 确保模拟数据始终显示
-  if (joinedActivities.value.length === 0) {
-    console.log('No activities found, adding mock data');
-    // 添加模拟活动数据
-    joinedActivities.value = [
-      {
-        id: 1,
-        name: '四姑娘山徒步穿越',
-        location: '四川阿坝',
-        date: '2023-10-15 至 2023-10-20',
-        status: '已完成',
-        image: 'https://picsum.photos/id/29/400/300'
-      }
-    ];
-  }
   
   // 检查登录状态
   if (!authStore.isAuthenticated) {

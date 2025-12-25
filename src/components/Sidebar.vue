@@ -12,7 +12,7 @@ const menuItems = [
   {
     title: '首页',
     icon: '🏠',
-    route: '/'
+    route: '#top'  // 改为锚点，点击时滚动到页面顶部
   },
   {
     title: '活动报名',
@@ -42,13 +42,13 @@ const menuItems = [
   {
     title: '新闻速递',
     icon: '📰',
-    route: '#video-news-section'
+    route: '#news-section'
   },
   {
-      title: 'AI定制路线',
-      icon: '🤖',
-      route: '#ai-custom-section'
-    },
+    title: 'AI定制路线',
+    icon: '🤖',
+    route: '#ai-custom-section'
+  },
   {
     title: '个人中心',
     icon: '👤',
@@ -105,9 +105,22 @@ const isActive = computed(() => (itemRoute) => {
 const navigateTo = (targetRoute) => {
   if (targetRoute.startsWith('#')) {
     // 处理锚点链接
-    const element = document.querySelector(targetRoute);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (route.path !== '/') {
+      // 如果当前不在首页，先跳转到首页，然后滚动到锚点
+      router.push('/').then(() => {
+        setTimeout(() => {
+          const element = document.querySelector(targetRoute);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      });
+    } else {
+      // 如果已经在首页，直接滚动到锚点
+      const element = document.querySelector(targetRoute);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
     }
   } else {
     // 判断当前是否在个人中心页面且要切换到其他页面

@@ -23,7 +23,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="home-page container">
+  <div class="home-page container" id="top">
     <!-- 主视觉区域 -->
     <HeroSection />
     

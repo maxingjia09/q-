@@ -48,12 +48,13 @@
       </div>
 
       <!-- 新闻速递部分 -->
-      <div class="section-header mt-5">
-        <h2 class="section-title">新闻速递</h2>
-        <button class="btn-more-news">更多新闻</button>
-      </div>
+      <div id="news-section">
+        <div class="section-header mt-5">
+          <h2 class="section-title">新闻速递</h2>
+          <button class="btn-more-news">更多新闻</button>
+        </div>
 
-      <div class="news-grid">
+        <div class="news-grid">
         <div class="news-card">
           <div class="news-image">
             <img src="../assets/tq.PNG" alt="活动日记">
@@ -93,6 +94,7 @@
             <div class="news-date">2020-04-03</div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </section>

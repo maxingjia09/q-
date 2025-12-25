@@ -24,20 +24,23 @@
           <h3 class="category-title">国内经典徒步路线</h3>
           <div class="route-grid">
             <div v-for="route in hikingRoutes" :key="route.id" class="route-card">
-              <div class="route-image">
-                <img :src="route.image" :alt="route.name">
+            <div class="route-image">
+              <img :src="route.image" :alt="route.name">
+            </div>
+            <div class="route-content">
+              <h4 class="route-name">{{ route.name }}</h4>
+              <p class="route-location">{{ route.location }}</p>
+              <p class="route-description">{{ route.description.substring(0, 100) }}...</p>
+              <div class="route-details">
+                <span class="detail-item">{{ route.difficulty }}</span>
+                <span class="detail-item">{{ route.duration }}</span>
               </div>
-              <div class="route-content">
-                <h4 class="route-name">{{ route.name }}</h4>
-                <p class="route-location">{{ route.location }}</p>
-                <p class="route-description">{{ route.description }}</p>
-                <div class="route-details">
-                  <span class="detail-item">{{ route.difficulty }}</span>
-                  <span class="detail-item">{{ route.duration }}</span>
-                </div>
+              <div class="activity-buttons">
+                <button class="detail-btn" @click="showActivityDetail(route)">了解详情</button>
                 <button class="btn-join" @click="showJoinModal(route)">立即报名</button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
@@ -60,21 +63,24 @@
           <div class="rock-climbing-spots">
             <h3 class="category-title">攀岩场地与活动</h3>
             <div class="route-grid">
-              <div v-for="spot in rockClimbingSpots" :key="spot.id" class="route-card">
-                <div class="route-image">
-                  <img :src="spot.image" :alt="spot.name">
-                </div>
-                <div class="route-content">
-                  <h4 class="route-name">{{ spot.name }}</h4>
-                  <p class="route-location">{{ spot.location }}</p>
-                  <p class="route-description">{{ spot.description }}</p>
-                  <div class="route-details">
-                    <span class="detail-item">{{ spot.difficulty }}</span>
-                    <span class="detail-item">{{ spot.height }}</span>
-                  </div>
-                  <button class="btn-join" @click="showJoinModal(spot)">立即报名</button>
-                </div>
-              </div>
+             <div v-for="spot in rockClimbingSpots" :key="spot.id" class="route-card">
+               <div class="route-image">
+                 <img :src="spot.image" :alt="spot.name">
+               </div>
+               <div class="route-content">
+                 <h4 class="route-name">{{ spot.name }}</h4>
+                 <p class="route-location">{{ spot.location }}</p>
+                 <p class="route-description">{{ spot.description.substring(0, 100) }}...</p>
+                 <div class="route-details">
+                   <span class="detail-item">{{ spot.difficulty }}</span>
+                   <span class="detail-item">{{ spot.height }}</span>
+                 </div>
+                 <div class="activity-buttons">
+                   <button class="detail-btn" @click="showActivityDetail(spot)">了解详情</button>
+                   <button class="btn-join" @click="showJoinModal(spot)">立即报名</button>
+                 </div>
+               </div>
+             </div>
             </div>
           </div>
         </div>
@@ -84,21 +90,24 @@
           <div class="mountain-expeditions">
             <h3 class="category-title">雪山攀登探险</h3>
             <div class="route-grid">
-              <div v-for="expedition in mountainExpeditions" :key="expedition.id" class="route-card">
-                <div class="route-image">
-                  <img :src="expedition.image" :alt="expedition.name">
-                </div>
-                <div class="route-content">
-                  <h4 class="route-name">{{ expedition.name }}</h4>
-                  <p class="route-location">{{ expedition.location }}</p>
-                  <p class="route-description">{{ expedition.description }}</p>
-                  <div class="route-details">
-                    <span class="detail-item">{{ expedition.altitude }}</span>
-                    <span class="detail-item">{{ expedition.duration }}</span>
-                  </div>
-                  <button class="btn-join" @click="showJoinModal(expedition)">立即报名</button>
-                </div>
-              </div>
+             <div v-for="expedition in mountainExpeditions" :key="expedition.id" class="route-card">
+               <div class="route-image">
+                 <img :src="expedition.image" :alt="expedition.name">
+               </div>
+               <div class="route-content">
+                 <h4 class="route-name">{{ expedition.name }}</h4>
+                 <p class="route-location">{{ expedition.location }}</p>
+                 <p class="route-description">{{ expedition.description.substring(0, 100) }}...</p>
+                 <div class="route-details">
+                   <span class="detail-item">{{ expedition.altitude }}</span>
+                   <span class="detail-item">{{ expedition.duration }}</span>
+                 </div>
+                 <div class="activity-buttons">
+                   <button class="detail-btn" @click="showActivityDetail(expedition)">了解详情</button>
+                   <button class="btn-join" @click="showJoinModal(expedition)">立即报名</button>
+                 </div>
+               </div>
+             </div>
             </div>
           </div>
         </div>
@@ -155,13 +164,99 @@
         </div>
       </div>
     </div>
+
+    <!-- 支付方式选择弹窗 -->
+    <div v-if="showPaymentModal" class="join-modal" @click="closePaymentModal">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>选择支付方式</h3>
+          <button class="close-button" @click="closePaymentModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="payment-options">
+            <!-- 积分抵扣选项 -->
+            <div class="payment-option">
+              <input type="checkbox" id="use-points" v-model="usePoints">
+              <label for="use-points">使用积分抵扣</label>
+              <div v-if="usePoints" class="points-input-group">
+                <span>可用积分：{{ authStore.points }}</span>
+                <input type="number" v-model.number="pointsToUse" min="0" :max="authStore.points" placeholder="输入抵扣积分">
+              </div>
+            </div>
+
+            <!-- 支付方式选择 -->
+            <div class="payment-methods">
+              <h4>支付方式</h4>
+              <div class="payment-method">
+                <input type="radio" id="wechat" name="payment-method" value="wechat" v-model="selectedPaymentMethod">
+                <label for="wechat">微信支付</label>
+              </div>
+              <div class="payment-method">
+                <input type="radio" id="alipay" name="payment-method" value="alipay" v-model="selectedPaymentMethod">
+                <label for="alipay">支付宝支付</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-cancel" @click="closePaymentModal" :disabled="isProcessingPayment">取消</button>
+            <button class="btn-submit" @click="confirmPayment" :disabled="!selectedPaymentMethod || isProcessingPayment">
+              {{ isProcessingPayment ? '处理中...' : '确认支付' }}
+            </button>
+          </div>
+      </div>
+    </div>
+    
+    <!-- 活动详情弹窗 -->
+    <div v-if="showDetailModal && selectedActivity" class="join-modal" @click="closeDetailModal">
+      <div class="modal-content detail-modal-content" @click.stop style="max-width: 700px; width: 90%; background: white; color: black; padding: 20px; border-radius: 8px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h3 style="margin: 0;">{{ selectedActivity?.name }}</h3>
+          <button class="close-button" @click="closeDetailModal" style="background: none; border: none; font-size: 24px; cursor: pointer;">×</button>
+        </div>
+        <div class="modal-body detail-modal-body">
+          <div class="detail-image" style="margin-bottom: 20px;">
+            <img :src="selectedActivity?.image" :alt="selectedActivity?.name" class="activity-image" style="width: 100%; height: auto; border-radius: 8px;">
+          </div>
+          <div class="detail-info" style="display: flex; flex-direction: column; gap: 15px;">
+            <p class="detail-location" style="font-size: 18px; margin: 0;"><strong>地点：</strong>{{ selectedActivity?.location }}</p>
+            <div class="detail-description" style="font-size: 16px; line-height: 1.6; margin: 0;">
+                <strong>描述：</strong><br>
+                <div v-html="selectedActivity?.description"></div>
+              </div>
+            <div class="detail-specifics" style="margin-top: 10px;">
+              <!-- 根据活动类型显示不同的具体信息 -->
+              <div v-if="selectedActivity?.difficulty" class="detail-item" style="margin-right: 20px; margin-bottom: 10px;">
+                <strong>难度：</strong>{{ selectedActivity?.difficulty }}
+              </div>
+              <div v-if="selectedActivity?.duration" class="detail-item" style="margin-right: 20px; margin-bottom: 10px;">
+                <strong>时长：</strong>{{ selectedActivity?.duration }}
+              </div>
+              <div v-if="selectedActivity?.height" class="detail-item" style="margin-right: 20px; margin-bottom: 10px;">
+                <strong>高度：</strong>{{ selectedActivity?.height }}
+              </div>
+              <div v-if="selectedActivity?.altitude" class="detail-item" style="margin-right: 20px; margin-bottom: 10px;">
+                <strong>海拔：</strong>{{ selectedActivity?.altitude }}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button class="btn-cancel" @click="closeDetailModal" style="padding: 10px 20px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">关闭</button>
+          <button class="btn-join" @click="() => { closeDetailModal(); showJoinModal(selectedActivity); }" style="padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">立即报名</button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
 import { ref } from 'vue';
+import { useAuthStore } from '../stores/authStore';
 // 导入活动数据
 import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+
+const authStore = useAuthStore();
 
 // 活动类型切换
 const activeTab = ref('hiking');
@@ -179,6 +274,8 @@ const climbingTabs = [
 
 // 报名弹窗相关
 const showModal = ref(false);
+const showPaymentModal = ref(false);
+const showDetailModal = ref(false); // 详情弹窗状态
 const selectedActivity = ref(null);
 const formData = ref({
   name: '',
@@ -186,6 +283,10 @@ const formData = ref({
   email: '',
   experience: ''
 });
+const selectedPaymentMethod = ref('');
+const usePoints = ref(false);
+const pointsToUse = ref(0);
+const isProcessingPayment = ref(false); // 支付处理状态
 
 // 显示报名弹窗
 const showJoinModal = (activity) => {
@@ -200,29 +301,90 @@ const showJoinModal = (activity) => {
   };
 };
 
+// 显示活动详情弹窗
+const showActivityDetail = (activity) => {
+  selectedActivity.value = activity;
+  showDetailModal.value = true;
+};
+
 // 关闭报名弹窗
 const closeModal = () => {
   showModal.value = false;
   selectedActivity.value = null;
 };
 
-// 提交报名表单
-const submitForm = () => {
-  // 这里可以添加表单验证逻辑
+// 关闭详情弹窗
+const closeDetailModal = () => {
+  showDetailModal.value = false;
+  selectedActivity.value = null;
+};
+
+// 关闭支付弹窗
+const closePaymentModal = () => {
+  showPaymentModal.value = false;
+  selectedPaymentMethod.value = '';
+  usePoints.value = false;
+  pointsToUse.value = 0;
+};
+
+// 打开支付弹窗
+const openPaymentModal = () => {
+  // 表单验证
   if (!formData.value.name || !formData.value.phone) {
     alert('请填写姓名和手机号');
     return;
   }
+  showPaymentModal.value = true;
+  // 初始化积分抵扣信息
+  pointsToUse.value = authStore.points;
+};
+
+// 确认支付并完成报名
+const confirmPayment = async () => {
+  try {
+    isProcessingPayment.value = true;
+    
+    // 模拟支付处理延迟
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    let pointsDeducted = 0;
+    
+    // 如果使用积分抵扣
+    if (usePoints.value && pointsToUse.value > 0) {
+      // 调用积分抵扣的方法
+      pointsDeducted = authStore.deductPoints(pointsToUse.value);
+      console.log(`使用积分抵扣: ${pointsToUse.value}，抵扣后剩余积分: ${pointsDeducted}`);
+    }
+    
+    // 调用authStore的joinActivity方法
+    authStore.joinActivity(selectedActivity.value, {
+      ...formData.value,
+      paymentMethod: selectedPaymentMethod.value,
+      usePoints: usePoints.value,
+      pointsToUse: pointsToUse.value
+    });
+    
+    // 显示提交成功提示
+    alert(`报名成功！您的活动已添加到个人中心。\n支付方式：${selectedPaymentMethod.value === 'wechat' ? '微信支付' : '支付宝支付'}${usePoints.value ? `，积分抵扣：${pointsToUse.value}` : ''}`);
+    closePaymentModal();
+    closeModal();
+  } catch (error) {
+    alert(error.message);
+  } finally {
+    isProcessingPayment.value = false;
+  }
+};
+
+// 提交报名表单 - 打开支付选择弹窗
+const submitForm = () => {
+  // 检查用户是否已登录
+  if (!authStore.isAuthenticated) {
+    alert('请先登录后再报名活动');
+    return;
+  }
   
-  // 模拟表单提交
-  console.log('提交报名信息:', {
-    activity: selectedActivity.value,
-    formData: formData.value
-  });
-  
-  // 显示提交成功提示
-  alert('报名成功！我们将尽快与您联系。');
-  closeModal();
+  // 打开支付方式选择弹窗
+  openPaymentModal();
 };
 </script>
 
@@ -390,6 +552,29 @@ const submitForm = () => {
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 活动按钮样式 */
+.activity-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.detail-btn {
+  flex: 1;
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.detail-btn:hover {
+  background-color: #d0d0d0;
 }
 
 .route-card:hover {
@@ -627,6 +812,134 @@ const submitForm = () => {
   background-color: #2980b9;
 }
 
+/* 支付选项样式 */
+.payment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.payment-option {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+.payment-option label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #2c3e50;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.points-input-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.points-input-group span {
+  color: #3498db;
+  font-weight: 500;
+}
+
+.points-input-group input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100px;
+}
+
+.payment-methods h4 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.payment-method:hover {
+  background-color: #f0f8ff;
+}
+
+.payment-method label {
+  font-size: 1rem;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+/* 活动详情弹窗样式 */
+.detail-modal-content {
+  max-width: 700px;
+  width: 90%;
+}
+
+.detail-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.detail-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-image img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.detail-location {
+  font-size: 18px;
+  color: #666;
+}
+
+.detail-description {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.detail-specifics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.detail-specifics .detail-item {
+  background-color: #f5f5f5;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #333;
+  background-color: #f0f8ff;
+  color: #3498db;
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .route-grid {
@@ -668,6 +981,11 @@ const submitForm = () => {
   .activity-image {
     width: 100%;
     height: 200px;
+  }
+  
+  .points-input-group {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>

@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
   const token = ref(localStorage.getItem('authToken') || null);
   const points = ref(0); // 用户积分
+  const joinedActivities = ref([]); // 用户参与的活动
   const isAuthenticated = computed(() => !!token.value);
 
   // 模拟用户数据 - 只保留管理员账号，普通用户需要注册
@@ -38,6 +39,21 @@ export const useAuthStore = defineStore('auth', () => {
   
   // 保存到localStorage
   localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+
+  // 从localStorage获取用户参与的活动
+  const loadJoinedActivities = () => {
+    if (user.value) {
+      const savedActivities = localStorage.getItem(`user_${user.value.id}_activities`);
+      joinedActivities.value = savedActivities ? JSON.parse(savedActivities) : [];
+    }
+  };
+
+  // 保存用户参与的活动到localStorage
+  const saveJoinedActivities = () => {
+    if (user.value) {
+      localStorage.setItem(`user_${user.value.id}_activities`, JSON.stringify(joinedActivities.value));
+    }
+  };
 
 
   // 登录
@@ -141,6 +157,66 @@ export const useAuthStore = defineStore('auth', () => {
     return points.value;
   };
 
+  // 扣除积分
+  const deductPoints = (amount) => {
+    if (!isAuthenticated.value) {
+      throw new Error('请先登录');
+    }
+
+    if (amount <= 0 || isNaN(amount)) {
+      throw new Error('请输入有效的积分数量');
+    }
+
+    if (amount > points.value) {
+      throw new Error('您的积分不足');
+    }
+
+    // 更新本地积分
+    points.value -= amount;
+
+    // 更新mock用户数据
+    const userIndex = mockUsers.findIndex(u => u.email === user.value.email);
+    if (userIndex !== -1) {
+      mockUsers[userIndex].points = points.value;
+      localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+    }
+
+    return points.value;
+  };
+
+  // 报名活动
+  const joinActivity = (activity, formData) => {
+    if (!isAuthenticated.value || !user.value) {
+      throw new Error('请先登录');
+    }
+
+    // 生成活动ID（如果没有）
+    const activityId = activity.id || Date.now();
+    
+    // 创建参与的活动记录
+    const joinedActivity = {
+      id: activityId,
+      name: activity.name,
+      location: activity.location,
+      image: activity.image,
+      date: new Date().toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      status: '进行中',
+      formData: formData
+    };
+
+    // 添加到用户参与的活动列表
+    joinedActivities.value.push(joinedActivity);
+    
+    // 保存到localStorage
+    saveJoinedActivities();
+    
+    return joinedActivity;
+  };
+
   // 初始化认证状态
   const initAuth = async () => {
     console.log('InitAuth called');
@@ -173,6 +249,9 @@ export const useAuthStore = defineStore('auth', () => {
         };
         points.value = foundUser.points;
         console.log('User loaded successfully:', user.value);
+        
+        // 加载用户参与的活动
+        loadJoinedActivities();
       } else {
         console.log('User not found, clearing token');
         // 如果找不到用户，清除token
@@ -188,17 +267,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
     
     console.log('InitAuth completed, isAuthenticated:', isAuthenticated.value);
+    console.log('Joined activities:', joinedActivities.value.length);
   };
 
   return {
     user,
     token,
     points,
+    joinedActivities,
     isAuthenticated,
     login,
     register,
     logout,
     rechargePoints,
-    initAuth
+    deductPoints,
+    initAuth,
+    joinActivity
   };
 });
