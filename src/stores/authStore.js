@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('authToken') || null);
   const points = ref(0); // 用户积分
   const joinedActivities = ref([]); // 用户参与的活动
+  const avatar = ref(localStorage.getItem('userAvatar') || null); // 用户头像
   const isAuthenticated = computed(() => !!token.value);
 
   // 模拟用户数据 - 只保留管理员账号，普通用户需要注册
@@ -270,11 +271,56 @@ export const useAuthStore = defineStore('auth', () => {
     console.log('Joined activities:', joinedActivities.value.length);
   };
 
+  // 更新用户信息
+  const updateUserProfile = async (profileData) => {
+    if (!isAuthenticated.value) {
+      throw new Error('请先登录');
+    }
+
+    // 模拟API请求
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 更新本地用户信息
+    user.value = {
+      ...user.value,
+      ...profileData
+    };
+
+    // 更新mock用户数据
+    const userIndex = mockUsers.findIndex(u => u.email === user.value.email);
+    if (userIndex !== -1) {
+      mockUsers[userIndex] = {
+        ...mockUsers[userIndex],
+        ...profileData
+      };
+      localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
+    }
+
+    return user.value;
+  };
+
+  // 更新用户头像
+  const updateAvatar = async (avatarData) => {
+    if (!isAuthenticated.value) {
+      throw new Error('请先登录');
+    }
+
+    // 模拟API请求
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 保存头像数据
+    avatar.value = avatarData;
+    localStorage.setItem('userAvatar', avatarData);
+
+    return avatarData;
+  };
+
   return {
     user,
     token,
     points,
     joinedActivities,
+    avatar,
     isAuthenticated,
     login,
     register,
@@ -282,6 +328,8 @@ export const useAuthStore = defineStore('auth', () => {
     rechargePoints,
     deductPoints,
     initAuth,
-    joinActivity
+    joinActivity,
+    updateUserProfile,
+    updateAvatar
   };
 });

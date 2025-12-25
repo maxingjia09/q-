@@ -140,8 +140,8 @@ const handleSubmit = async () => {
       // 只有在直接访问登录页时才执行跳转
       // 避免在模态框模式下双重跳转
       if (window.location.pathname === '/login') {
-        console.log('Direct login page, redirecting to personal center using router.push');
-        router.push('/personal');
+        console.log('Direct login page, performing full page refresh to /personal');
+        window.location.href = '/personal';
       }
     }, 100);
   };

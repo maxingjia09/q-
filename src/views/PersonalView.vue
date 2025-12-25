@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import { useRouter } from 'vue-router';
 
@@ -8,12 +8,22 @@ const router = useRouter();
 
 const user = computed(() => authStore.user);
 const points = computed(() => authStore.points);
+const avatar = computed(() => authStore.avatar);
 const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+const isLoading = ref(true);
 
 const activeTab = ref('profile');
 const rechargeAmount = ref('');
 const showPaymentModal = ref(false);
 const selectedPaymentMethod = ref('');
+
+const isEditing = ref(false);
+const editForm = ref({
+  username: '',
+  email: '',
+  phone: ''
+});
 
 const quickAmounts = [100, 200, 500, 1000];
 
@@ -41,6 +51,55 @@ const joinedActivities = ref([
     image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400'
   }
 ]);
+
+const startEditing = () => {
+  editForm.value = {
+    username: user.value?.username || '',
+    email: user.value?.email || '',
+    phone: user.value?.phone || ''
+  };
+  isEditing.value = true;
+};
+
+const cancelEditing = () => {
+  isEditing.value = false;
+  editForm.value = {
+    username: '',
+    email: '',
+    phone: ''
+  };
+};
+
+const saveProfile = async () => {
+  try {
+    await authStore.updateUserProfile(editForm.value);
+    alert('个人信息更新成功！');
+    isEditing.value = false;
+  } catch (error) {
+    alert(error.message || '更新失败，请重试');
+  }
+};
+
+const handleAvatarUpload = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert('图片大小不能超过2MB');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      await authStore.updateAvatar(e.target.result);
+      alert('头像更新成功！');
+    } catch (error) {
+      alert(error.message || '头像更新失败，请重试');
+    }
+  };
+  reader.readAsDataURL(file);
+};
 
 const handleRecharge = () => {
   if (!rechargeAmount.value || rechargeAmount.value <= 0) {
@@ -74,16 +133,45 @@ const browseActivities = () => {
   router.push('/');
 };
 
-onMounted(() => {
+const refreshUserData = async () => {
+  try {
+    await authStore.initAuth();
+  } catch (error) {
+    console.error('刷新用户数据失败:', error);
+  }
+};
+
+let refreshInterval = null;
+
+onMounted(async () => {
   if (!isAuthenticated.value) {
     router.push('/login');
+    return;
+  }
+  
+  await refreshUserData();
+  
+  isLoading.value = false;
+  
+  refreshInterval = setInterval(async () => {
+    await refreshUserData();
+  }, 30000);
+});
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
   }
 });
 </script>
 
 <template>
   <div class="personal-page">
-    <div class="page-container">
+    <div v-if="isLoading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
+    </div>
+    <div v-else class="page-container">
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="logo">
@@ -116,8 +204,14 @@ onMounted(() => {
       <main class="main-content">
         <div class="content-wrapper">
           <header class="user-header">
-            <div class="user-avatar">
-              <img src="../assets/logo.svg" alt="用户头像">
+            <div class="user-avatar-wrapper">
+              <div class="user-avatar">
+                <img :src="avatar || '../assets/logo.svg'" alt="用户头像">
+              </div>
+              <label class="avatar-upload-btn">
+                <input type="file" accept="image/*" @change="handleAvatarUpload" style="display: none;">
+                <span>更换头像</span>
+              </label>
             </div>
             <div class="user-info">
               <h1>{{ user?.username || '访客用户' }}</h1>
@@ -141,20 +235,37 @@ onMounted(() => {
 
           <div class="tab-content">
             <div v-if="activeTab === 'profile'" class="profile-section">
-              <h2>个人信息</h2>
+              <div class="section-header">
+                <h2>个人信息</h2>
+                <button v-if="!isEditing" class="edit-btn" @click="startEditing">编辑</button>
+                <div v-else class="edit-actions">
+                  <button class="cancel-btn" @click="cancelEditing">取消</button>
+                  <button class="save-btn" @click="saveProfile">保存</button>
+                </div>
+              </div>
               <div class="info-grid">
                 <div class="info-card">
                   <div class="card-icon">👤</div>
                   <div class="card-content">
                     <label>用户名</label>
-                    <div class="value">{{ user?.username || '访客用户' }}</div>
+                    <div v-if="!isEditing" class="value">{{ user?.username || '访客用户' }}</div>
+                    <input v-else v-model="editForm.username" class="edit-input" placeholder="请输入用户名">
                   </div>
                 </div>
                 <div class="info-card">
                   <div class="card-icon">📧</div>
                   <div class="card-content">
                     <label>邮箱</label>
-                    <div class="value">{{ user?.email || '未设置' }}</div>
+                    <div v-if="!isEditing" class="value">{{ user?.email || '未设置' }}</div>
+                    <input v-else v-model="editForm.email" type="email" class="edit-input" placeholder="请输入邮箱">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📱</div>
+                  <div class="card-content">
+                    <label>联系电话</label>
+                    <div v-if="!isEditing" class="value">{{ user?.phone || '未设置' }}</div>
+                    <input v-else v-model="editForm.phone" type="tel" class="edit-input" placeholder="请输入联系电话">
                   </div>
                 </div>
                 <div class="info-card">
@@ -300,6 +411,7 @@ onMounted(() => {
   top: 80px;
   height: calc(100vh - 80px);
   overflow-y: auto;
+  z-index: 100;
 }
 
 .sidebar-header {
@@ -338,6 +450,8 @@ onMounted(() => {
   font-size: 15px;
   margin: 5px 15px;
   border-radius: 8px;
+  position: relative;
+  z-index: 101;
 }
 
 .nav-item:hover {
@@ -398,6 +512,30 @@ onMounted(() => {
   flex-shrink: 0;
 }
 
+.user-avatar-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-upload-btn {
+  padding: 6px 16px;
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  border: 1px solid #667eea;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.avatar-upload-btn:hover {
+  background: #667eea;
+  color: white;
+}
+
 .user-avatar img {
   width: 100%;
   height: 100%;
@@ -451,6 +589,81 @@ onMounted(() => {
   font-size: 24px;
   color: #2c3e50;
   font-weight: 600;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.edit-btn {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.edit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cancel-btn,
+.save-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.cancel-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.edit-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .info-grid {
@@ -824,6 +1037,36 @@ onMounted(() => {
 .confirm-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
 }
 
 @media (max-width: 1600px) {

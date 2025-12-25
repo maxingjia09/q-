@@ -18,12 +18,14 @@ const route = useRoute();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.user);
 const points = computed(() => authStore.points);
+const avatar = computed(() => authStore.avatar);
 
 const emit = defineEmits(['toggle-sidebar']);
 
 const showAuthModal = ref(false);
 const authModalView = ref('login');
 const isMobileMenuOpen = ref(false);
+const showUserDropdown = ref(false);
 
 const openLoginModal = () => {
   authModalView.value = 'login';
@@ -48,8 +50,8 @@ const handleLoginSuccess = async () => {
     console.log('After initAuth in NavBar, isAuthenticated:', authStore.isAuthenticated);
     
     if (authStore.isAuthenticated) {
-      console.log('Redirecting to personal center using router.push');
-      router.push('/personal');
+      console.log('Redirecting with page refresh to personal center');
+      window.location.href = '/personal';
     } else {
       console.error('Authentication failed after login success event');
     }
@@ -187,7 +189,11 @@ const navigateTo = (targetRoute) => {
       }
     }
   } else {
-    router.push(targetRoute);
+    if (route.path === '/personal' && targetRoute !== '/personal') {
+      window.location.href = targetRoute;
+    } else {
+      router.push(targetRoute);
+    }
   }
   isMobileMenuOpen.value = false;
 };
@@ -221,10 +227,21 @@ const navigateTo = (targetRoute) => {
 
       <div class="auth-buttons">
         <template v-if="isAuthenticated">
-          <div class="user-info">
-            <span class="username">{{ user?.username }}</span>
+          <div class="user-info" @mouseenter="showUserDropdown = true" @mouseleave="showUserDropdown = false">
+            <div class="user-avatar-container">
+              <img :src="avatar || '../assets/logo.svg'" alt="用户头像" class="user-avatar-img">
+            </div>
             <span class="points">{{ points }} 积分</span>
-            <button class="btn-logout" @click="handleLogout">退出</button>
+            <div v-show="showUserDropdown" class="user-dropdown">
+              <div class="dropdown-item" @click="router.push('/personal')">
+                <span class="dropdown-icon">👤</span>
+                <span>个人中心</span>
+              </div>
+              <div class="dropdown-item" @click="handleLogout">
+                <span class="dropdown-icon">🚪</span>
+                <span>退出登录</span>
+              </div>
+            </div>
           </div>
         </template>
         <template v-else>
@@ -359,6 +376,62 @@ const navigateTo = (targetRoute) => {
   align-items: center;
   gap: 1rem;
   color: #2c3e50;
+  position: relative;
+}
+
+.user-avatar-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.user-avatar-container:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.user-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  padding: 8px 0;
+  z-index: 1001;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #495057;
+}
+
+.dropdown-item:hover {
+  background: #f8f9fa;
+  color: #667eea;
+}
+
+.dropdown-icon {
+  font-size: 18px;
 }
 
 .points {
@@ -396,21 +469,6 @@ const navigateTo = (targetRoute) => {
 
 .btn-register:hover {
   background-color: #2980b9;
-}
-
-.btn-logout {
-  padding: 0.3rem 0.8rem;
-  border: 1px solid #e74c3c;
-  background-color: transparent;
-  color: #e74c3c;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-logout:hover {
-  background-color: #e74c3c;
-  color: white;
 }
 
 .menu-toggle {
@@ -514,7 +572,7 @@ const navigateTo = (targetRoute) => {
     gap: 0.5rem;
   }
 
-  .username {
+  .points {
     display: none;
   }
 }

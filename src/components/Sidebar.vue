@@ -123,8 +123,14 @@ const navigateTo = (targetRoute) => {
       }
     }
   } else {
-    // 使用router.push进行路由导航
-    router.push(targetRoute);
+    // 判断当前是否在个人中心页面且要切换到其他页面
+    // 如果是从个人中心切换到其他页面，使用window.location.href强制刷新
+    if (route.path === '/personal' && targetRoute !== '/personal') {
+      window.location.href = targetRoute;
+    } else {
+      // 其他情况使用router.push
+      router.push(targetRoute);
+    }
   }
 };
 </script>

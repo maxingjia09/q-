@@ -42,7 +42,7 @@
             </ul>
           </div>
 
-          <button class="btn-apply">申请认证</button>
+          <router-link to="/certification-apply" class="btn-apply">申请认证</router-link>
         </div>
       </div>
     </div>
@@ -256,6 +256,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: inline-block;
+  text-decoration: none;
 }
 
 .btn-apply:hover {

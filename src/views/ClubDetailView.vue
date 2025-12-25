@@ -188,7 +188,6 @@ const activeTab = ref('overview');
 const loadClub = (id) => {
   const clubId = parseInt(id);
   club.value = clubs.find(c => c.id === clubId);
-  activeTab.value = 'overview';
   if (club.value) {
     window.scrollTo(0, 0);
   }
@@ -236,7 +235,7 @@ onBeforeRouteUpdate((to) => {
   top: 80px;
   height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .sidebar-header {
@@ -276,7 +275,7 @@ onBeforeRouteUpdate((to) => {
   margin: 5px 15px;
   border-radius: 8px;
   position: relative;
-  z-index: 1001;
+  z-index: 101;
 }
 
 .nav-item:hover {

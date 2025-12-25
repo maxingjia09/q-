@@ -170,14 +170,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeMount } from 'vue';
-import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { courses } from '../data/courseData';
 import { useAuthStore } from '../stores/authStore';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
+const courseId = parseInt(route.params.id);
 const course = ref(null);
 const activeTab = ref('overview');
 
@@ -186,15 +187,6 @@ const newEvaluation = ref({
   rating: 0,
   content: ''
 });
-
-const loadCourse = (id) => {
-  const courseId = parseInt(id);
-  course.value = courses.find(c => c.id === courseId);
-  activeTab.value = 'overview';
-  if (course.value) {
-    window.scrollTo(0, 0);
-  }
-};
 
 const descriptionParagraphs = computed(() => {
   if (!course.value) return [];
@@ -244,13 +236,32 @@ const goBack = () => {
   }, 100);
 };
 
-onBeforeMount(() => {
-  loadCourse(route.params.id);
+onMounted(() => {
+  course.value = courses.find(c => c.id === courseId);
+  if (course.value) {
+    window.scrollTo(0, 0);
+  }
+  
+  refreshInterval = setInterval(async () => {
+    await refreshUserData();
+  }, 30000);
 });
 
-onBeforeRouteUpdate((to) => {
-  loadCourse(to.params.id);
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval);
+  }
 });
+
+const refreshUserData = async () => {
+  try {
+    await authStore.initAuth();
+  } catch (error) {
+    console.error('刷新用户数据失败:', error);
+  }
+};
+
+let refreshInterval = null;
 </script>
 
 <style scoped>
@@ -279,7 +290,6 @@ onBeforeRouteUpdate((to) => {
   top: 80px;
   height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 1000;
 }
 
 .sidebar-header {
@@ -318,8 +328,6 @@ onBeforeRouteUpdate((to) => {
   font-size: 15px;
   margin: 5px 15px;
   border-radius: 8px;
-  position: relative;
-  z-index: 1001;
 }
 
 .nav-item:hover {

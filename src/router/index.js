@@ -8,6 +8,7 @@ import AdminLoginView from '../views/AdminLoginView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
 import CourseDetailView from '../views/CourseDetailView.vue'
 import ClubDetailView from '../views/ClubDetailView.vue'
+import CertificationApplyView from '../views/CertificationApplyView.vue'
 import { useAuthStore } from '../stores/authStore';
 
 const router = createRouter({
@@ -56,12 +57,18 @@ const router = createRouter({
     {
       path: '/courses/:id',
       name: 'course-detail',
-      component: CourseDetailView
+      component: CourseDetailView,
+      props: true
     },
     {
       path: '/clubs/:id',
       name: 'club-detail',
       component: ClubDetailView
+    },
+    {
+      path: '/certification-apply',
+      name: 'certification-apply',
+      component: CertificationApplyView
     }
   ],
 })
