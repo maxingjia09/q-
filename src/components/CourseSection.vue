@@ -14,7 +14,7 @@
           <div class="course-content">
             <h3 class="course-title">山地探索课程</h3>
             <p class="course-description">适合初学者的山地探索技能培训，包括地图阅读、指南针使用和基础攀登技术。</p>
-            <a href="#" class="course-link">了解详情 →</a>
+            <router-link to="/courses/1" class="course-link">了解详情 →</router-link>
           </div>
         </div>
 
@@ -25,7 +25,7 @@
           <div class="course-content">
             <h3 class="course-title">山地救援课程</h3>
             <p class="course-description">专业的山地救援技术培训，学习紧急情况下的救援技巧和安全操作规范。</p>
-            <a href="#" class="course-link">了解详情 →</a>
+            <router-link to="/courses/2" class="course-link">了解详情 →</router-link>
           </div>
         </div>
 
@@ -36,7 +36,7 @@
           <div class="course-content">
             <h3 class="course-title">山地生存课程</h3>
             <p class="course-description">掌握野外生存技能，包括搭建庇护所、寻找水源、野外烹饪和应对恶劣天气。</p>
-            <a href="#" class="course-link">了解详情 →</a>
+            <router-link to="/courses/3" class="course-link">了解详情 →</router-link>
           </div>
         </div>
 
@@ -47,7 +47,7 @@
           <div class="course-content">
             <h3 class="course-title">青少年课程</h3>
             <p class="course-description">专为青少年设计的户外教育课程，培养团队合作能力和环境意识。</p>
-            <a href="#" class="course-link">了解详情 →</a>
+            <router-link to="/courses/4" class="course-link">了解详情 →</router-link>
           </div>
         </div>
       </div>

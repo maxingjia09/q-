@@ -122,25 +122,6 @@
           <button class="close-button" @click="closeModal">×</button>
         </div>
         <div class="modal-body">
-          <div class="activity-info">
-            <img :src="selectedActivity?.image" :alt="selectedActivity?.name" class="activity-image">
-            <div class="info-details">
-              <p><strong>地点：</strong>{{ selectedActivity?.location }}</p>
-              <p><strong>描述：</strong>{{ selectedActivity?.description }}</p>
-              <div v-if="selectedActivity?.difficulty">
-                <p><strong>难度：</strong>{{ selectedActivity?.difficulty }}</p>
-              </div>
-              <div v-if="selectedActivity?.duration">
-                <p><strong>时长：</strong>{{ selectedActivity?.duration }}</p>
-              </div>
-              <div v-if="selectedActivity?.height">
-                <p><strong>高度：</strong>{{ selectedActivity?.height }}</p>
-              </div>
-              <div v-if="selectedActivity?.altitude">
-                <p><strong>海拔：</strong>{{ selectedActivity?.altitude }}</p>
-              </div>
-            </div>
-          </div>
           <div class="form-group">
             <label for="name">姓名：</label>
             <input type="text" id="name" v-model="formData.name" placeholder="请输入您的姓名">
@@ -237,6 +218,31 @@
               </div>
               <div v-if="selectedActivity?.altitude" class="detail-item" style="margin-right: 20px; margin-bottom: 10px;">
                 <strong>海拔：</strong>{{ selectedActivity?.altitude }}
+              </div>
+            </div>
+            <div class="reviews-section" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+              <h4 style="margin: 0 0 20px 0; font-size: 18px; color: #2c3e50;">游客评价</h4>
+              <div v-if="selectedActivity?.reviews && selectedActivity.reviews.length > 0" class="reviews-list">
+                <div v-for="(review, index) in selectedActivity.reviews" :key="index" class="review-item" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                  <div class="review-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div class="review-user" style="display: flex; align-items: center; gap: 10px;">
+                      <div class="user-avatar" style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">
+                        {{ review.user.charAt(0) }}
+                      </div>
+                      <div class="user-info">
+                        <div class="user-name" style="font-weight: bold; color: #2c3e50; font-size: 14px;">{{ review.user }}</div>
+                        <div class="review-date" style="font-size: 12px; color: #999;">{{ review.date }}</div>
+                      </div>
+                    </div>
+                    <div class="review-rating" style="display: flex; gap: 2px;">
+                      <span v-for="star in 5" :key="star" :style="{ color: star <= review.rating ? '#ffc107' : '#e0e0e0', fontSize: '16px' }">★</span>
+                    </div>
+                  </div>
+                  <div class="review-content" style="color: #555; line-height: 1.6; font-size: 14px;">{{ review.content }}</div>
+                </div>
+              </div>
+              <div v-else class="no-reviews" style="text-align: center; color: #999; padding: 30px;">
+                暂无评价
               </div>
             </div>
           </div>

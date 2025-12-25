@@ -2,8 +2,9 @@
 import { ref, computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import AuthModal from './AuthModal.vue';
+
 const props = defineProps({
   isScrolled: {
     type: Boolean,
@@ -13,13 +14,16 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const user = computed(() => authStore.user);
 const points = computed(() => authStore.points);
 
-// 模态框状态
+const emit = defineEmits(['toggle-sidebar']);
+
 const showAuthModal = ref(false);
 const authModalView = ref('login');
+const isMobileMenuOpen = ref(false);
 
 const openLoginModal = () => {
   authModalView.value = 'login';
@@ -37,18 +41,15 @@ const closeAuthModal = () => {
 
 const handleLoginSuccess = async () => {
   console.log('Login success handler triggered in NavBar');
-  closeAuthModal(); // 先关闭模态框
+  closeAuthModal();
   
-  // 确保用户信息已初始化
   try {
     await authStore.initAuth();
     console.log('After initAuth in NavBar, isAuthenticated:', authStore.isAuthenticated);
     
-    // 确认认证状态后使用window.location.href进行页面刷新和跳转
-    // 这样可以确保页面完全刷新并进入个人中心
     if (authStore.isAuthenticated) {
-      console.log('Redirecting with page refresh to personal center');
-      window.location.href = '/personal';
+      console.log('Redirecting to personal center using router.push');
+      router.push('/personal');
     } else {
       console.error('Authentication failed after login success event');
     }
@@ -65,16 +66,130 @@ const handleLogout = () => {
 };
 
 const handleRegisterSuccess = () => {
-  // 注册成功后导航到登录页面
   router.push('/login');
 };
 
-// 页面内滚动到指定区域
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth' });
   }
+};
+
+const toggleSidebar = () => {
+  emit('toggle-sidebar');
+};
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
+const menuItems = [
+  {
+    title: '首页',
+    icon: '🏠',
+    route: '#top'
+  },
+  {
+    title: '活动报名',
+    icon: '📝',
+    route: '#activities'
+  },
+  {
+    title: '探索俱乐部',
+    icon: '⛰️',
+    route: '#clubs-section'
+  },
+  {
+    title: '课程体系',
+    icon: '📚',
+    route: '#courses'
+  },
+  {
+    title: '权威认证',
+    icon: '🏆',
+    route: '#certificates'
+  },
+  {
+    title: '视频专题',
+    icon: '🎬',
+    route: '#video-news-section'
+  },
+  {
+    title: '新闻速递',
+    icon: '📰',
+    route: '#news-section'
+  },
+  {
+    title: 'AI定制路线',
+    icon: '🤖',
+    route: '#ai-custom-section'
+  },
+  {
+    title: '个人中心',
+    icon: '👤',
+    route: '/personal'
+  },
+  {
+    title: '管理员板块',
+    icon: '🔧',
+    isSectionHeader: true
+  },
+  {
+    title: '管理员仪表盘',
+    icon: '📊',
+    route: '/admin/dashboard',
+    isAdminOnly: true
+  },
+  {
+    title: '管理员登录',
+    icon: '🔑',
+    route: '/admin/login',
+    isAdminOnly: true
+  }
+];
+
+const visibleMenuItems = computed(() => {
+  if (!authStore.isAuthenticated) {
+    return menuItems.filter(item => 
+      item.title === '管理员登录' || 
+      (!item.isAdminOnly && !item.isSectionHeader)
+    );
+  } else if (authStore.user?.isAdmin) {
+    return menuItems;
+  } else {
+    return menuItems.filter(item => !item.isAdminOnly && !item.isSectionHeader);
+  }
+});
+
+const isActive = computed(() => (itemRoute) => {
+  if (!itemRoute.startsWith('#')) {
+    return route.path === itemRoute;
+  }
+  return false;
+});
+
+const navigateTo = (targetRoute) => {
+  if (targetRoute.startsWith('#')) {
+    if (route.path !== '/') {
+      router.push('/').then(() => {
+        setTimeout(() => {
+          const element = document.querySelector(targetRoute);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      });
+    } else {
+      const element = document.querySelector(targetRoute);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  } else {
+    router.push(targetRoute);
+  }
+  isMobileMenuOpen.value = false;
 };
 </script>
 
@@ -87,15 +202,25 @@ const scrollToSection = (sectionId) => {
       </div>
 
       <div class="nav-links">
-          <RouterLink to="/" class="nav-link">首页</RouterLink>
-        <a href="#courses" class="nav-link" @click.prevent="scrollToSection('courses')">课程</a>
-        <a href="#certificates" class="nav-link" @click.prevent="scrollToSection('certificates')">证书</a>
-        <a href="#about" class="nav-link" @click.prevent="scrollToSection('about')">关于我们</a>
+        <a 
+          v-for="item in visibleMenuItems" 
+          :key="item.title"
+          :class="['nav-link', { active: isActive(item.route) }]"
+          @click="navigateTo(item.route)"
+        >
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span>{{ item.title }}</span>
+        </a>
       </div>
+
+      <button class="menu-toggle" @click="toggleMobileMenu">
+        <span :class="{ open: isMobileMenuOpen }"></span>
+        <span :class="{ open: isMobileMenuOpen }"></span>
+        <span :class="{ open: isMobileMenuOpen }"></span>
+      </button>
 
       <div class="auth-buttons">
         <template v-if="isAuthenticated">
-          <RouterLink to="/personal" class="nav-link personal-link">个人中心</RouterLink>
           <div class="user-info">
             <span class="username">{{ user?.username }}</span>
             <span class="points">{{ points }} 积分</span>
@@ -108,9 +233,20 @@ const scrollToSection = (sectionId) => {
         </template>
       </div>
     </div>
+
+    <div :class="['mobile-menu', { open: isMobileMenuOpen }]">
+      <a 
+        v-for="item in visibleMenuItems" 
+        :key="item.title"
+        :class="['mobile-menu-item', { active: isActive(item.route) }]"
+        @click="navigateTo(item.route)"
+      >
+        <span class="mobile-menu-icon">{{ item.icon }}</span>
+        <span>{{ item.title }}</span>
+      </a>
+    </div>
   </nav>
   
-  <!-- 登录/注册模态框 -->
   <AuthModal 
     :is-visible="showAuthModal" 
     :initial-view="authModalView"
@@ -129,15 +265,17 @@ const scrollToSection = (sectionId) => {
   z-index: 1000;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
   padding: 0.8rem 0;
-}
-
-.navbar.scrolled {
   background-color: rgba(255, 255, 255, 0.95);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+}
+
 .container {
-  max-width: 1600px; /* 与App.vue中的container保持一致 */
+  max-width: 1800px;
   width: 100%;
   margin: 0 auto;
   padding: 0 2rem;
@@ -164,28 +302,56 @@ const scrollToSection = (sectionId) => {
 
 .nav-links {
   display: flex;
-  gap: 2rem;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 0 1rem;
+}
+
+.nav-links::-webkit-scrollbar {
+  height: 3px;
+}
+
+.nav-links::-webkit-scrollbar-thumb {
+  background-color: #3498db;
+  border-radius: 3px;
 }
 
 .nav-link {
   color: #2c3e50;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s;
-}
-
-.navbar:not(.scrolled) .nav-link {
-  color: white;
+  transition: all 0.2s;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
 }
 
 .nav-link:hover {
+  background-color: #f8f9fa;
   color: #3498db;
+}
+
+.nav-link.active {
+  background-color: #ecf0f1;
+  color: #3498db;
+  font-weight: 600;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
 }
 
 .auth-buttons {
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -195,28 +361,12 @@ const scrollToSection = (sectionId) => {
   color: #2c3e50;
 }
 
-.navbar:not(.scrolled) .user-info {
-  color: white;
-}
-
 .points {
   background-color: #3498db;
   color: white;
   padding: 0.2rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
-}
-
-.personal-link {
-  display: flex;
-  align-items: center;
-  padding: 0 0.5rem;
-}
-
-@media (max-width: 768px) {
-  .personal-link {
-    display: none;
-  }
 }
 
 .btn-login,
@@ -234,11 +384,6 @@ const scrollToSection = (sectionId) => {
   color: #3498db;
 }
 
-.navbar:not(.scrolled) .btn-login {
-  border-color: white;
-  color: white;
-}
-
 .btn-login:hover {
   background-color: rgba(52, 152, 219, 0.1);
 }
@@ -253,8 +398,123 @@ const scrollToSection = (sectionId) => {
   background-color: #2980b9;
 }
 
-@media (max-width: 768px) {
+.btn-logout {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid #e74c3c;
+  background-color: transparent;
+  color: #e74c3c;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 25px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.menu-toggle span {
+  width: 100%;
+  height: 3px;
+  background-color: #2c3e50;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.menu-toggle:hover span:nth-child(2) {
+  transform: translateX(5px);
+}
+
+.mobile-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.mobile-menu.open {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem 2rem;
+  color: #2c3e50;
+  text-decoration: none;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+}
+
+.mobile-menu-item:hover {
+  background-color: #f8f9fa;
+  border-left-color: #3498db;
+}
+
+.mobile-menu-item.active {
+  background-color: #ecf0f1;
+  border-left-color: #3498db;
+  font-weight: 600;
+}
+
+.mobile-menu-icon {
+  font-size: 1.2rem;
+  margin-right: 1rem;
+}
+
+@media (max-width: 1024px) {
   .nav-links {
+    display: none;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .logo-img {
+    height: 32px;
+  }
+
+  .user-info {
+    gap: 0.5rem;
+  }
+
+  .username {
     display: none;
   }
 }

@@ -6,6 +6,8 @@ import RegisterView from '../views/RegisterView.vue';
 import PersonalView from '../views/PersonalView.vue';
 import AdminLoginView from '../views/AdminLoginView.vue'
 import AdminDashboardView from '../views/AdminDashboardView.vue'
+import CourseDetailView from '../views/CourseDetailView.vue'
+import ClubDetailView from '../views/ClubDetailView.vue'
 import { useAuthStore } from '../stores/authStore';
 
 const router = createRouter({
@@ -50,6 +52,16 @@ const router = createRouter({
       name: 'admin-dashboard',
       component: AdminDashboardView,
       meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/courses/:id',
+      name: 'course-detail',
+      component: CourseDetailView
+    },
+    {
+      path: '/clubs/:id',
+      name: 'club-detail',
+      component: ClubDetailView
     }
   ],
 })

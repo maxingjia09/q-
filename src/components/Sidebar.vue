@@ -123,14 +123,8 @@ const navigateTo = (targetRoute) => {
       }
     }
   } else {
-    // 判断当前是否在个人中心页面且要切换到其他页面
-    // 如果是从个人中心切换到其他页面，使用window.location.href强制刷新
-    if (route.path === '/personal' && targetRoute !== '/personal') {
-      window.location.href = targetRoute;
-    } else {
-      // 其他情况使用router.push
-      router.push(targetRoute);
-    }
+    // 使用router.push进行路由导航
+    router.push(targetRoute);
   }
 };
 </script>
@@ -320,7 +314,12 @@ const navigateTo = (targetRoute) => {
 @media (max-width: 768px) {
   .sidebar {
     width: 250px;
-    left: -250px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
   }
 }
 </style>

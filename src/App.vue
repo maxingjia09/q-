@@ -2,13 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { RouterView } from 'vue-router';
 import NavBar from './components/NavBar.vue';
-import Sidebar from './components/Sidebar.vue';
 import Footer from './components/Footer.vue';
-import zfImage from './assets/zf.jpg';
 
-// 监听滚动事件
 const handleScroll = () => {
-  // 滚动事件逻辑可以在这里添加
 };
 
 onMounted(() => {
@@ -19,14 +15,9 @@ onMounted(() => {
 <template>
   <div class="app">
     <NavBar />
-    <!-- 主要内容布局 -->
-    <div class="main-layout">
-      <Sidebar />
-      <main class="main-content">
-        <!-- 恢复RouterView，使路由跳转正常工作 -->
-        <RouterView />
-      </main>
-    </div>
+    <main class="main-content">
+      <RouterView />
+    </main>
     <Footer />
   </div>
 </template>
@@ -58,34 +49,15 @@ body {
   display: flex;
   flex-direction: column;
   position: relative;
-}
-
-/* 确保app容器不会遮挡背景 */
-.app {
   background-color: transparent;
-}
-
-.main-layout {
-  display: flex;
-  flex: 1;
 }
 
 .main-content {
   flex: 1;
-  /* 移除padding-left，因为侧边栏已经是fixed定位 */
-  transition: padding-left 0.3s ease;
-  background-color: transparent; /* 透明背景，让页面自己控制背景 */
-  min-height: calc(100vh - 80px); /* 确保内容区域足够高 */
-  display: flex;
-  justify-content: center;
-  width: 100%; /* 使用全宽度 */
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .main-content {
-    /* 响应式下也不需要padding-left */
-  }
+  padding-top: 80px;
+  background-color: transparent;
+  min-height: calc(100vh - 80px);
+  width: 100%;
 }
 
 /* 通用容器样式 */
@@ -96,17 +68,23 @@ body {
   padding: 0 2rem;
 }
 
+/* 个人中心页面使用更大的宽度 */
+.main-content .personal-page .container {
+  max-width: 100%;
+  padding: 0 1rem;
+}
+
 /* 确保RouterView内的内容能够正常居中 */
 .main-content > * {
   width: 100%;
-  max-width: 1800px; /* 进一步增加最大宽度以满足要求 */
-  margin: 0 auto;
+  margin: 0;
 }
 
-/* 个人中心页面例外 - 允许右侧拓展到最右侧 */
+/* 个人中心页面使用更大的宽度 */
 .main-content > .personal-container {
-  max-width: none; /* 移除最大宽度限制 */
-  margin: 0; /* 移除居中对齐 */
+  max-width: none;
+  width: 100%;
+  margin: 0;
 }
 
 /* 通用按钮样式 */

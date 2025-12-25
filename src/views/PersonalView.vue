@@ -1,685 +1,840 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useAuthStore } from '../stores/authStore';
+import { useRouter } from 'vue-router';
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+const user = computed(() => authStore.user);
+const points = computed(() => authStore.points);
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+
+const activeTab = ref('profile');
+const rechargeAmount = ref('');
+const showPaymentModal = ref(false);
+const selectedPaymentMethod = ref('');
+
+const quickAmounts = [100, 200, 500, 1000];
+
+const paymentMethods = [
+  { id: 'wechat', name: '微信支付', icon: '💚' },
+  { id: 'alipay', name: '支付宝', icon: '💙' },
+  { id: 'card', name: '银行卡', icon: '💳' }
+];
+
+const joinedActivities = ref([
+  {
+    id: 1,
+    name: '周末登山活动',
+    location: '北京香山',
+    date: '2024-01-20',
+    status: '已完成',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400'
+  },
+  {
+    id: 2,
+    name: '野外露营体验',
+    location: '怀柔雁栖湖',
+    date: '2024-02-15',
+    status: '进行中',
+    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400'
+  }
+]);
+
+const handleRecharge = () => {
+  if (!rechargeAmount.value || rechargeAmount.value <= 0) {
+    alert('请输入有效的充值金额');
+    return;
+  }
+  showPaymentModal.value = true;
+};
+
+const confirmPayment = () => {
+  if (!selectedPaymentMethod.value) {
+    alert('请选择支付方式');
+    return;
+  }
+  const amount = parseInt(rechargeAmount.value);
+  authStore.updatePoints(authStore.points + amount);
+  alert(`充值成功！${amount} 积分已到账`);
+  showPaymentModal.value = false;
+  rechargeAmount.value = '';
+  selectedPaymentMethod.value = '';
+};
+
+const handleLogout = () => {
+  if (confirm('确定要退出登录吗？')) {
+    authStore.logout();
+    router.push('/login');
+  }
+};
+
+const browseActivities = () => {
+  router.push('/');
+};
+
+onMounted(() => {
+  if (!isAuthenticated.value) {
+    router.push('/login');
+  }
+});
+</script>
+
 <template>
-  <div class="personal-container">
-    <!-- 页面标题 -->
-    <h1 class="page-title">个人中心</h1>
-    
-    <!-- 主要内容区域 - 使用flex布局确保左右两栏正常显示 -->
-    <div class="personal-content-wrapper">
-      <!-- 左侧个人信息卡片 -->
-      <div class="user-info-card">
-        <h2 class="section-title">个人信息</h2>
-        <div class="info-content">
-          <div class="info-row">
-            <span class="info-label">用户名:</span>
-            <span class="info-value">{{ user?.username || '访客用户' }}</span>
+  <div class="personal-page">
+    <div class="page-container">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <img src="../assets/logo.svg" alt="Logo">
           </div>
-          <div class="info-row">
-            <span class="info-label">邮箱:</span>
-            <span class="info-value">{{ user?.email || '未登录' }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">注册时间:</span>
-            <span class="info-value">{{ formattedRegisterTime }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">会员等级:</span>
-            <span class="info-value">普通会员</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">当前积分:</span>
-            <span class="info-value points-value">{{ points }} 积分</span>
-          </div>
+          <h3 class="brand-name">探索户外运动中心</h3>
         </div>
-        
-        <!-- 充值板块 -->
-        <div class="recharge-section">
-          <h3 class="recharge-title">账户充值</h3>
-          <div class="recharge-input-group">
-            <label for="rechargeAmount">充值金额</label>
-            <input 
-              type="number" 
-              id="rechargeAmount" 
-              v-model="rechargeAmount" 
-              placeholder="请输入充值金额" 
-              min="1" 
-              step="1" 
-              :disabled="isRecharging"
-            >
-            <p class="error-message" v-if="rechargeError">{{ rechargeError }}</p>
-          </div>
-          <button 
-            class="recharge-btn" 
-            @click="handleRecharge" 
-            :disabled="isRecharging || !authStore.isAuthenticated"
+
+        <nav class="sidebar-nav">
+          <div 
+            v-for="tab in [
+              { id: 'profile', label: '个人信息', icon: '👤' },
+              { id: 'activities', label: '参与活动', icon: '🏃' },
+              { id: 'recharge', label: '账户充值', icon: '💰' }
+            ]"
+            :key="tab.id"
+            :class="['nav-item', { active: activeTab === tab.id }]"
+            @click="activeTab = tab.id"
           >
-            {{ isRecharging ? '充值中...' : '立即充值' }}
-          </button>
-          <p class="recharge-hint" v-if="!authStore.isAuthenticated">请先登录后再进行充值</p>
-        </div>
-      </div>
-      
-      <!-- 右侧活动列表 -->
-      <div class="activities-card">
-        <h2 class="section-title">我参与的活动</h2>
-        <div class="activities-container">
-          <div v-for="activity in joinedActivities" :key="activity.id" class="activity-item">
-            <img :src="activity.image" :alt="activity.name" class="activity-image">
-            <div class="activity-text">
-              <h4 class="activity-title">{{ activity.name }}</h4>
-              <p class="activity-location">{{ activity.location }}</p>
-              <p class="activity-date">{{ activity.date }}</p>
-              <span class="status-badge" :class="activity.status">{{ activity.status }}</span>
-              <div class="activity-buttons">
-                <button class="view-btn" @click="viewActivityDetails(activity.id)">查看详情</button>
-                <button v-if="activity.status === '进行中'" class="cancel-btn" @click="cancelActivity(activity.id)">取消参与</button>
+            <span class="icon">{{ tab.icon }}</span>
+            <span>{{ tab.label }}</span>
+          </div>
+          <div class="nav-item logout" @click="handleLogout">
+            <span class="icon">🚪</span>
+            <span>退出登录</span>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <div class="content-wrapper">
+          <header class="user-header">
+            <div class="user-avatar">
+              <img src="../assets/logo.svg" alt="用户头像">
+            </div>
+            <div class="user-info">
+              <h1>{{ user?.username || '访客用户' }}</h1>
+              <p>{{ user?.email || '未登录' }}</p>
+            </div>
+            <div class="user-stats">
+              <div class="stat-item">
+                <span class="stat-label">积分</span>
+                <span class="stat-value">{{ points }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">活动数</span>
+                <span class="stat-value">{{ joinedActivities.length }}</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">会员等级</span>
+                <span class="stat-value">普通会员</span>
+              </div>
+            </div>
+          </header>
+
+          <div class="tab-content">
+            <div v-if="activeTab === 'profile'" class="profile-section">
+              <h2>个人信息</h2>
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="card-icon">👤</div>
+                  <div class="card-content">
+                    <label>用户名</label>
+                    <div class="value">{{ user?.username || '访客用户' }}</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📧</div>
+                  <div class="card-content">
+                    <label>邮箱</label>
+                    <div class="value">{{ user?.email || '未设置' }}</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📅</div>
+                  <div class="card-content">
+                    <label>注册时间</label>
+                    <div class="value">2024-01-01</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">⭐</div>
+                  <div class="card-content">
+                    <label>会员等级</label>
+                    <div class="value">普通会员</div>
+                  </div>
+                </div>
+                <div class="info-card highlight">
+                  <div class="card-icon">💎</div>
+                  <div class="card-content">
+                    <label>积分余额</label>
+                    <div class="value points">{{ points }}</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🎯</div>
+                  <div class="card-content">
+                    <label>参与活动数</label>
+                    <div class="value">{{ joinedActivities.length }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'activities'" class="activities-section">
+              <h2>参与的活动</h2>
+              <div v-if="joinedActivities.length === 0" class="empty-state">
+                <div class="empty-icon">📋</div>
+                <p>暂无参与的活动</p>
+                <button class="action-btn" @click="browseActivities">去浏览活动</button>
+              </div>
+              <div v-else class="activities-list">
+                <div v-for="activity in joinedActivities" :key="activity.id" class="activity-card">
+                  <img :src="activity.image" :alt="activity.name" class="activity-image">
+                  <div class="activity-info">
+                    <h3>{{ activity.name }}</h3>
+                    <p class="location">📍 {{ activity.location }}</p>
+                    <p class="date">📅 {{ activity.date }}</p>
+                    <span :class="['status', activity.status]">{{ activity.status }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'recharge'" class="recharge-section">
+              <h2>账户充值</h2>
+              <div class="recharge-container">
+                <div class="balance-card">
+                  <div class="balance-label">当前积分</div>
+                  <div class="balance-amount">{{ points }}</div>
+                </div>
+                
+                <div class="recharge-form">
+                  <h3>选择充值金额</h3>
+                  <div class="quick-amounts">
+                    <button 
+                      v-for="amount in quickAmounts"
+                      :key="amount"
+                      :class="['amount-btn', { active: rechargeAmount === amount }]"
+                      @click="rechargeAmount = amount"
+                    >
+                      {{ amount }}
+                    </button>
+                  </div>
+                  
+                  <div class="custom-amount">
+                    <label>自定义金额</label>
+                    <input 
+                      v-model="rechargeAmount" 
+                      type="number" 
+                      placeholder="请输入充值金额"
+                      min="1"
+                    >
+                  </div>
+                  
+                  <button class="recharge-btn" @click="handleRecharge">
+                    立即充值
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
-  </div>
-  
-  <!-- 支付方式选择模态框 -->
-  <div class="modal-overlay" v-if="showPaymentModal" @click="closePaymentModal">
-    <div class="modal-content" @click.stop>
-      <h3>选择支付方式</h3>
-      <div class="payment-methods">
-        <button 
-          class="payment-btn wechat-btn" 
-          @click="selectPaymentMethod('wechat')"
-        >
-          微信支付
-        </button>
-        <button 
-          class="payment-btn alipay-btn" 
-          @click="selectPaymentMethod('alipay')"
-        >
-          支付宝支付
-        </button>
+
+    <div v-if="showPaymentModal" class="modal-overlay" @click.self="showPaymentModal = false">
+      <div class="payment-modal">
+        <h3>选择支付方式</h3>
+        <p class="amount-display">充值金额: {{ rechargeAmount }} 积分</p>
+        <div class="payment-methods">
+          <div 
+            v-for="method in paymentMethods"
+            :key="method.id"
+            :class="['payment-method', { selected: selectedPaymentMethod === method.id }]"
+            @click="selectedPaymentMethod = method.id"
+          >
+            <span class="method-icon">{{ method.icon }}</span>
+            <span class="method-name">{{ method.name }}</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="cancel-btn" @click="showPaymentModal = false">取消</button>
+          <button class="confirm-btn" @click="confirmPayment">确认支付</button>
+        </div>
       </div>
-      <button class="close-btn" @click="closePaymentModal">取消</button>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '../stores/authStore';
-import gaImage from '../assets/ga.jpg';
-
-const router = useRouter();
-const authStore = useAuthStore();
-
-// 状态
-const user = computed(() => authStore.user);
-const points = computed(() => authStore.points);
-const joinedActivities = computed(() => authStore.joinedActivities);
-const rechargeAmount = ref(0);
-const isRecharging = ref(false);
-const rechargeError = ref('');
-const showPaymentModal = ref(false);
-const selectedPaymentMethod = ref('');
-const showLoginPrompt = ref(false);
-
-// 格式化注册时间（模拟）
-const formattedRegisterTime = computed(() => {
-  const now = new Date();
-  return now.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-});
-
-// 初始化
-onMounted(async () => {
-  console.log('PersonalView mounted');
-  console.log('isAuthenticated:', authStore.isAuthenticated);
-  console.log('Joined activities count:', joinedActivities.value.length);
-  
-  // 检查登录状态
-  if (!authStore.isAuthenticated) {
-    console.log('Not authenticated, allowing access to view structure');
-    // 为了调试，不显示登录弹窗，让用户可以看到页面结构
-    // showLoginPrompt.value = true;
-  } else {
-    console.log('Already authenticated, initializing user info');
-    try {
-      // 初始化用户信息
-      await authStore.initAuth();
-      console.log('After initAuth, user:', authStore.user);
-    } catch (error) {
-      console.error('Error initializing auth:', error);
-    }
-  }
-});
-
-// 处理提示弹窗点击
-const handlePromptClick = () => {
-  // 点击遮罩层不关闭弹窗，必须通过按钮操作
-};
-
-// 跳转到登录页
-const goToLogin = () => {
-  router.push('/login');
-};
-
-// 显示支付方式选择模态框
-const handleRecharge = () => {
-  if (!rechargeAmount.value || rechargeAmount.value < 1) {
-    rechargeError.value = '请输入有效的充值金额（不低于1元）';
-    return;
-  }
-  
-  rechargeError.value = '';
-  showPaymentModal.value = true;
-};
-
-// 关闭支付方式选择模态框
-const closePaymentModal = () => {
-  showPaymentModal.value = false;
-  selectedPaymentMethod.value = '';
-};
-
-// 选择支付方式并进行充值
-const selectPaymentMethod = async (method) => {
-  selectedPaymentMethod.value = method;
-  showPaymentModal.value = false;
-  
-  // 执行充值操作
-  await processRecharge();
-};
-
-// 处理实际的充值操作
-const processRecharge = async () => {
-  isRecharging.value = true;
-  
-  try {
-    await authStore.rechargePoints(rechargeAmount.value);
-    // 充值成功提示，包含支付方式信息
-    const paymentMethodText = selectedPaymentMethod.value === 'wechat' ? '微信支付' : '支付宝支付';
-    alert(`使用${paymentMethodText}充值成功！获得 ${rechargeAmount.value} 积分，当前总积分：${points.value}`);
-    rechargeAmount.value = 0;
-  } catch (error) {
-    rechargeError.value = error.message || '充值失败，请稍后重试';
-  } finally {
-    isRecharging.value = false;
-  }
-};
-
-// 退出登录
-const handleLogout = async () => {
-  if (confirm('确定要退出登录吗？')) {
-    await authStore.logout();
-    // 使用window.location.href强制刷新并返回首页
-    window.location.href = '/';
-  }
-};
-
-// 页面内滚动到指定区域
-const scrollToSection = (sectionId) => {
-  const element = document.getElementById(sectionId);
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth' });
-  }
-  // 更新活动状态
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active');
-  });
-  event.target.classList.add('active');
-};
-
-// 查看活动详情
-const viewActivityDetails = (activityId) => {
-  // 实际项目中可能会跳转到活动详情页
-  alert(`查看活动ID ${activityId} 的详情`);
-};
-
-// 取消参与活动
-const cancelActivity = (activityId) => {
-  if (confirm('确定要取消参与该活动吗？')) {
-    // 实际项目中会调用API取消活动
-    // 这里仅做模拟：找到活动并将状态改为"已取消"
-    const activity = joinedActivities.value.find(act => act.id === activityId);
-    if (activity) {
-      activity.status = '已取消';
-    }
-  }
-};
-
-// 浏览活动
-const browseActivities = () => {
-  // 跳转到活动报名页面
-  router.push('/');
-};
-</script>
-
 <style scoped>
-/* 基础容器样式 */
-.personal-container {
+.personal-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-top: 80px;
+}
+
+.page-container {
+  display: flex;
+  min-height: calc(100vh - 80px);
+  max-width: 1800px;
+  margin: 0 auto;
   width: 100%;
-  padding: 2rem 0 2rem 300px; /* 避开固定侧边栏，右侧不留内边距 */
-  background-image: url('@/assets/ga.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  box-sizing: border-box;
-  position: relative;
 }
 
-/* 添加半透明遮罩层增强文字可读性 */
-.personal-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.7);
-  z-index: 0;
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: white;
+  border-right: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
-/* 确保内容显示在遮罩层上方 */
-.personal-container > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* 页面标题 */
-.page-title {
+.sidebar-header {
+  padding: 30px 20px;
+  border-bottom: 1px solid #e9ecef;
   text-align: center;
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 2rem;
 }
 
-/* 内容包装器 - 使用flex布局 */
-.personal-content-wrapper {
-  display: flex;
-  gap: 2rem;
-  width: 100%;
+.logo img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+
+.brand-name {
   margin: 0;
-  padding-right: 1rem; /* 在wrapper上添加右侧内边距 */
-  box-sizing: border-box;
+  font-size: 16px;
+  color: #667eea;
+  font-weight: 600;
 }
 
-/* 左侧个人信息卡片 */
-.user-info-card {
-  flex: 0 0 350px;
-  background-color: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* 右侧活动列表卡片 */
-.activities-card {
+.sidebar-nav {
   flex: 1;
-  background-color: white;
+  padding: 20px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 25px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #495057;
+  font-size: 15px;
+  margin: 5px 15px;
   border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  width: 100%; /* 确保卡片宽度为100% */
-  max-width: none; /* 移除可能的最大宽度限制 */
 }
 
-/* 通用标题样式 */
-.section-title {
-  font-size: 1.3rem;
-  color: #2c3e50;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #3498db;
+.nav-item:hover {
+  background: #f8f9fa;
+  color: #667eea;
 }
 
-/* 个人信息内容 */
-.info-content {
+.nav-item.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.nav-item.logout {
+  margin-top: auto;
+  color: #dc3545;
+}
+
+.nav-item.logout:hover {
+  background: #dc3545;
+  color: white;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.main-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  min-width: 1200px;
+  max-width: 1920px;
 }
 
-.info-row {
+.content-wrapper {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
+}
+
+.user-header {
+  background: white;
+  border-radius: 15px;
+  padding: 30px 40px;
   display: flex;
-  justify-content: space-between;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  color: #666;
-  font-weight: 500;
-}
-
-.info-value {
-  color: #2c3e50;
-  font-weight: 400;
-}
-
-/* 活动容器 */
-.activities-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-/* 单个活动项 */
-.activity-item {
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  padding: 1rem;
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.activity-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* 活动图片 */
-.activity-image {
-  width: 120px;
-  height: 90px;
-  object-fit: cover;
-  border-radius: 4px;
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 4px;
   flex-shrink: 0;
 }
 
-/* 活动文本内容 */
-.activity-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* 活动标题 */
-.activity-title {
-  font-size: 1.1rem;
-  color: #2c3e50;
-  margin: 0;
-  font-weight: 600;
-}
-
-/* 活动地点 */
-.activity-location {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-}
-
-/* 活动日期 */
-.activity-date {
-  font-size: 0.9rem;
-  color: #7f8c8d;
-  margin: 0;
-}
-
-/* 状态标签 */
-.status-badge {
-  display: inline-block;
-  padding: 0.2rem 0.8rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  align-self: flex-start;
-}
-
-/* 不同状态的颜色 */
-.status-badge.已完成 {
-  background-color: #27ae60;
-  color: white;
-}
-
-.status-badge.进行中 {
-  background-color: #3498db;
-  color: white;
-}
-
-.status-badge.已取消 {
-  background-color: #95a5a6;
-  color: white;
-}
-
-/* 活动按钮容器 */
-.activity-buttons {
-  margin-top: 0.5rem;
-  display: flex;
-  gap: 0.8rem;
-}
-
-/* 查看详情按钮 */
-.view-btn {
-  padding: 0.5rem 1rem;
-  background-color: #3498db;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.view-btn:hover {
-  background-color: #2980b9;
-}
-
-/* 取消参与按钮 */
-.cancel-btn {
-  padding: 0.5rem 1rem;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.2s;
-}
-
-.cancel-btn:hover {
-  background-color: #c0392b;
-}
-
-/* 积分显示样式 */
-.points-value {
-  color: #e67e22;
-  font-weight: 600;
-}
-
-/* 充值板块样式 */
-.recharge-section {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid #f0f0f0;
-}
-
-.recharge-title {
-  font-size: 1.2rem;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.recharge-input-group {
-  margin-bottom: 1.5rem;
-}
-
-.recharge-input-group label {
-  display: block;
-  color: #666;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-}
-
-.recharge-input-group input {
+.user-avatar img {
   width: 100%;
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  box-sizing: border-box;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: white;
 }
 
-.recharge-input-group input:focus {
+.user-info h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.user-info p {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.user-stats {
+  margin-left: auto;
+  display: flex;
+  gap: 30px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  color: white;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.9;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tab-content h2 {
+  margin: 0 0 25px 0;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.info-card.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.card-icon {
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+.card-content label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.card-content .value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.info-card.highlight .card-content label {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.info-card.highlight .card-content .value {
+  color: white;
+}
+
+.info-card .card-content .value.points {
+  color: #667eea;
+}
+
+.info-card.highlight .card-content .value.points {
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 15px;
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  margin-top: 20px;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.activities-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+}
+
+.activity-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.activity-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.activity-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.activity-info {
+  padding: 20px;
+}
+
+.activity-info h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.activity-info p {
+  margin: 8px 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.status {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.status.已完成 {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.进行中 {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.recharge-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.balance-label {
+  font-size: 18px;
+  opacity: 0.9;
+  margin-bottom: 15px;
+}
+
+.balance-amount {
+  font-size: 56px;
+  font-weight: 700;
+}
+
+.recharge-form {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.recharge-form h3 {
+  margin: 0 0 25px 0;
+  font-size: 20px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.quick-amounts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.amount-btn {
+  padding: 18px;
+  border: 2px solid #e9ecef;
+  background: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 600;
+  color: #495057;
+  transition: all 0.3s;
+}
+
+.amount-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.amount-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+  color: white;
+}
+
+.custom-amount {
+  margin-bottom: 25px;
+}
+
+.custom-amount label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.custom-amount input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+.custom-amount input:focus {
   outline: none;
-  border-color: #3498db;
-}
-
-.error-message {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+  border-color: #667eea;
 }
 
 .recharge-btn {
   width: 100%;
-  padding: 1rem;
-  background-color: #3498db;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
 }
 
-.recharge-btn:hover:not(:disabled) {
-  background-color: #2980b9;
+.recharge-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
 }
 
-.recharge-btn:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.recharge-hint {
-  color: #95a5a6;
-  font-size: 0.9rem;
-  text-align: center;
-  margin-top: 0.8rem;
-}
-
-/* 支付模态框样式 */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
 }
 
-.modal-content {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
+.payment-modal {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 500px;
   width: 90%;
-  max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.modal-content h3 {
+.payment-modal h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
   color: #2c3e50;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  font-size: 1.3rem;
+}
+
+.amount-display {
+  margin: 10px 0 30px 0;
+  font-size: 18px;
+  color: #667eea;
+  font-weight: 600;
 }
 
 .payment-methods {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  display: grid;
+  gap: 15px;
+  margin-bottom: 30px;
 }
 
-.payment-btn {
-  padding: 1rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1.1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
+.payment-method {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.payment-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.wechat-btn {
-  background-color: #07c160;
-  color: white;
-}
-
-.alipay-btn {
-  background-color: #1677ff;
-  color: white;
-}
-
-.close-btn {
-  width: 100%;
-  padding: 0.8rem;
-  background-color: #ecf0f1;
-  color: #2c3e50;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  gap: 15px;
+  padding: 15px 20px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
 }
 
-.close-btn:hover {
-  background-color: #bdc3c7;
+.payment-method:hover {
+  border-color: #667eea;
 }
 
-/* 响应式设计 */
-@media (max-width: 992px) {
-  .personal-container {
-    padding-left: 250px;
-  }
-  
-  .personal-content-wrapper {
-    flex-direction: column;
-  }
-  
-  .user-info-card {
-    flex: none;
+.payment-method.selected {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.method-icon {
+  font-size: 24px;
+}
+
+.method-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.cancel-btn,
+.confirm-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.cancel-btn {
+  background: #f8f9fa;
+  color: #6c757d;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
+}
+
+.confirm-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.confirm-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 1600px) {
+  .recharge-container {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 768px) {
-  .personal-container {
-    padding-left: 200px;
-    padding-right: 0.5rem;
-  }
-  
-  .activity-item {
-    flex-direction: column;
-  }
-  
-  .activity-image {
-    width: 100%;
-    height: 160px;
+@media (max-width: 1400px) {
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

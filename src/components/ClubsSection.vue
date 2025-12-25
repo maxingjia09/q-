@@ -60,13 +60,12 @@
             
             <!-- 操作按钮 -->
             <div class="club-actions">
-              <button class="view-details-btn" @click="viewClubDetails(club.id)">查看详情</button>
+              <router-link :to="`/clubs/${club.id}`" class="view-details-btn">查看详情</router-link>
               <button class="contact-btn" @click="contactClub(club.id)">联系我们</button>
             </div>
           </div>
         </div>
       </div>
-      
 
     </div>
   </section>
@@ -89,6 +88,9 @@ export default {
           rating: 4.8,
           reviewCount: 236,
           image: peakClubLogo,
+          founded: '2014年3月',
+          experience: '10年',
+          guides: '28名专业向导',
           highlights: [
             '10年专业登山经验',
             '国家级教练团队',
@@ -99,11 +101,72 @@ export default {
             { name: '中级挑战', price: 698 },
             { name: '高级攀登', price: 1298 }
           ],
+          allRoutes: [
+            {
+              name: '初级登山',
+              price: 398,
+              description: '适合户外初学者，体验登山的乐趣，欣赏沿途风景',
+              difficulty: '简单',
+              duration: '1天'
+            },
+            {
+              name: '中级挑战',
+              price: 698,
+              description: '有一定登山经验者选择，挑战更高海拔，提升体能',
+              difficulty: '中等',
+              duration: '2天'
+            },
+            {
+              name: '高级攀登',
+              price: 1298,
+              description: '专业级登山路线，需要丰富经验和良好体能',
+              difficulty: '困难',
+              duration: '3-4天'
+            }
+          ],
+          goldGuides: [
+            {
+              name: '张伟',
+              experience: '12年登山向导经验，曾带领团队成功攀登珠穆朗玛峰、乞力马扎罗山等世界著名山峰',
+              specialties: ['高山攀登', '雪山救援', '野外生存'],
+              rating: 5.0,
+              activities: 580,
+              certifications: '国家一级登山教练'
+            },
+            {
+              name: '李明',
+              experience: '10年专业登山经验，精通各类登山技巧，擅长高海拔攀登和团队协作',
+              specialties: ['高海拔攀登', '团队训练', '安全指导'],
+              rating: 4.9,
+              activities: 450,
+              certifications: '国际登山联盟认证'
+            }
+          ],
           topReviews: [
             {
               name: '张先生',
               content: '教练非常专业，讲解细致，第一次登山体验很棒！',
               rating: 5
+            }
+          ],
+          reviews: [
+            {
+              name: '张先生',
+              content: '教练非常专业，讲解细致，第一次登山体验很棒！全程都有安全保障，装备也很新。强烈推荐给想尝试登山的朋友！',
+              rating: 5,
+              date: '2024-11-20'
+            },
+            {
+              name: '李女士',
+              content: '组织得很好，向导经验丰富，对路线非常熟悉。虽然第一次登山有点紧张，但在专业指导下顺利完成。',
+              rating: 5,
+              date: '2024-10-15'
+            },
+            {
+              name: '王先生',
+              content: '性价比很高，装备齐全，服务周到。中级路线很有挑战性，风景绝美！',
+              rating: 4,
+              date: '2024-09-28'
             }
           ]
         },
@@ -113,6 +176,9 @@ export default {
           rating: 4.6,
           reviewCount: 189,
           image: explorerClubLogo,
+          founded: '2016年8月',
+          experience: '8年',
+          guides: '22名专业向导',
           highlights: [
             '野外生存技能培训',
             '多样化探险活动',
@@ -123,11 +189,72 @@ export default {
             { name: '山地露营', price: 898 },
             { name: '峡谷漂流', price: 598 }
           ],
+          allRoutes: [
+            {
+              name: '森林探险',
+              price: 498,
+              description: '深入原始森林，学习野外生存技能，探索自然奥秘',
+              difficulty: '简单',
+              duration: '1天'
+            },
+            {
+              name: '山地露营',
+              price: 898,
+              description: '在山顶露营，欣赏星空日出，体验野外生活',
+              difficulty: '中等',
+              duration: '2天'
+            },
+            {
+              name: '峡谷漂流',
+              price: 598,
+              description: '刺激的峡谷漂流体验，感受大自然的磅礴力量',
+              difficulty: '中等',
+              duration: '1天'
+            }
+          ],
+          goldGuides: [
+            {
+              name: '王芳',
+              experience: '9年野外生存专家，曾在特种部队服役，精通各类野外生存技能和急救知识',
+              specialties: ['野外生存', '急救医疗', '丛林探险'],
+              rating: 4.9,
+              activities: 420,
+              certifications: '国家野外生存教练'
+            },
+            {
+              name: '陈强',
+              experience: '8年探险向导经验，擅长森林探险和山地露营，安全记录零事故',
+              specialties: ['森林探险', '露营指导', '生态保护'],
+              rating: 4.8,
+              activities: 380,
+              certifications: '国际探险协会认证'
+            }
+          ],
           topReviews: [
             {
               name: '李女士',
               content: '装备很新很专业，全程都很安全，风景也很美！',
               rating: 4
+            }
+          ],
+          reviews: [
+            {
+              name: '李女士',
+              content: '装备很新很专业，全程都很安全，风景也很美！森林探险路线设计得很好，学到了很多野外生存知识。',
+              rating: 4,
+              date: '2024-11-10'
+            },
+            {
+              name: '陈先生',
+              content: '露营体验太棒了！山顶的星空和日出让人终生难忘。向导很负责，照顾得很周到。',
+              rating: 5,
+              date: '2024-10-05'
+            },
+            {
+              name: '赵女士',
+              content: '峡谷漂流非常刺激，安全措施做得很好。团队建设活动组织得很成功！',
+              rating: 4,
+              date: '2024-09-18'
             }
           ]
         },
@@ -137,6 +264,9 @@ export default {
           rating: 4.7,
           reviewCount: 156,
           image: braveClubLogo,
+          founded: '2015年5月',
+          experience: '9年',
+          guides: '25名专业向导',
           highlights: [
             '全季节户外活动',
             '青少年训练营',
@@ -147,11 +277,72 @@ export default {
             { name: '攀岩体验', price: 498 },
             { name: '雪山攀登', price: 1698 }
           ],
+          allRoutes: [
+            {
+              name: '周末徒步',
+              price: 298,
+              description: '轻松的周末徒步路线，适合家庭和初学者',
+              difficulty: '简单',
+              duration: '1天'
+            },
+            {
+              name: '攀岩体验',
+              price: 498,
+              description: '专业攀岩场地，提供全套装备和教练指导',
+              difficulty: '中等',
+              duration: '1天'
+            },
+            {
+              name: '雪山攀登',
+              price: 1698,
+              description: '挑战雪山之巅，需要良好的体能和登山经验',
+              difficulty: '困难',
+              duration: '4-5天'
+            }
+          ],
+          goldGuides: [
+            {
+              name: '刘洋',
+              experience: '11年攀岩教练经验，国家攀岩队退役运动员，多次获得全国攀岩比赛冠军',
+              specialties: ['攀岩教学', '青少年培训', '团队建设'],
+              rating: 5.0,
+              activities: 520,
+              certifications: '国家攀岩一级教练'
+            },
+            {
+              name: '赵雪',
+              experience: '9年雪山攀登经验，成功攀登过多座5000米以上雪山，擅长高海拔攀登',
+              specialties: ['雪山攀登', '高海拔适应', '安全指导'],
+              rating: 4.9,
+              activities: 390,
+              certifications: '国际登山向导认证'
+            }
+          ],
           topReviews: [
             {
               name: '王先生',
               content: '组织有序，教练经验丰富，会推荐朋友来参加！',
               rating: 5
+            }
+          ],
+          reviews: [
+            {
+              name: '王先生',
+              content: '组织有序，教练经验丰富，会推荐朋友来参加！周末徒步路线风景优美，强度适中，非常适合放松心情。',
+              rating: 5,
+              date: '2024-11-25'
+            },
+            {
+              name: '刘女士',
+              content: '攀岩体验太棒了！教练很有耐心，从零开始教学，让我克服了恐惧。强烈推荐！',
+              rating: 5,
+              date: '2024-10-20'
+            },
+            {
+              name: '周先生',
+              content: '企业团建活动组织得非常好，团队凝聚力提升了很多。勇者团队很专业！',
+              rating: 4,
+              date: '2024-09-30'
             }
           ]
         }
@@ -159,15 +350,9 @@ export default {
     }
   },
   methods: {
-    viewClubDetails(clubId) {
-      // 导航到俱乐部详情页
-      this.$router.push(`/clubs?id=${clubId}`)
-    },
     contactClub(clubId) {
-      // 联系俱乐部的逻辑
       alert(`联系俱乐部 ${this.clubs.find(c => c.id === clubId)?.name}`)
-    },
-
+    }
   }
 }
 </script>
@@ -407,6 +592,10 @@ export default {
 .view-details-btn {
   background-color: #3498db;
   color: white;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .view-details-btn:hover {
@@ -475,6 +664,423 @@ export default {
   
   .club-actions {
     flex-direction: column;
+  }
+}
+
+/* 俱乐部详情弹窗样式 */
+.club-detail-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.club-detail-modal {
+  background: white;
+  border-radius: 15px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  border-bottom: 1px solid #e9ecef;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 32px;
+  color: #6c757d;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background: #f8f9fa;
+  color: #dc3545;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+/* 俱乐部基本信息 */
+.club-basic-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 10px;
+  color: white;
+}
+
+.info-item {
+  text-align: center;
+}
+
+.info-label {
+  display: block;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.info-value {
+  display: block;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* 金牌向导 */
+.club-guides-section {
+  margin-bottom: 30px;
+}
+
+.club-guides-section h4 {
+  font-size: 20px;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  font-weight: 600;
+}
+
+.guides-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.guide-card {
+  background: #f8f9fa;
+  padding: 25px;
+  border-radius: 12px;
+  display: flex;
+  gap: 20px;
+  border: 2px solid #e9ecef;
+  transition: all 0.3s;
+}
+
+.guide-card:hover {
+  border-color: #2196F3;
+  box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+  transform: translateY(-3px);
+}
+
+.guide-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.guide-info {
+  flex: 1;
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.guide-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.guide-badge {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.guide-experience {
+  margin: 10px 0;
+  color: #555;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+.guide-specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.specialty-tag {
+  background: #E3F2FD;
+  color: #1976D2;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.guide-stats {
+  display: flex;
+  gap: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.guide-stats .stat {
+  text-align: center;
+}
+
+.guide-stats .stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2196F3;
+}
+
+.guide-stats .stat-label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 3px;
+}
+
+/* 承接路线 */
+.club-routes-section {
+  margin-bottom: 30px;
+}
+
+.club-routes-section h4,
+.club-reviews-section h4 {
+  font-size: 20px;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  font-weight: 600;
+}
+
+.routes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.route-detail-item {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 4px solid #2196F3;
+}
+
+.route-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.route-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.route-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #e74c3c;
+}
+
+.route-description {
+  margin: 10px 0;
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.route-meta {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.route-difficulty,
+.route-duration {
+  font-size: 14px;
+  color: #495057;
+  padding: 5px 12px;
+  background: white;
+  border-radius: 15px;
+  font-weight: 500;
+}
+
+/* 客户评价 */
+.club-reviews-section {
+  margin-bottom: 20px;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.review-item {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.reviewer-avatar {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.reviewer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+.review-date {
+  font-size: 13px;
+  color: #999;
+}
+
+.review-rating {
+  color: #f1c40f;
+  font-size: 16px;
+}
+
+.review-content {
+  margin: 0;
+  color: #555;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.modal-footer {
+  padding: 20px 30px;
+  border-top: 1px solid #e9ecef;
+  text-align: right;
+  position: sticky;
+  bottom: 0;
+  background: white;
+}
+
+.close-modal-btn {
+  padding: 12px 30px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.close-modal-btn:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .club-basic-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .guides-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .guide-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .guide-stats {
+    justify-content: center;
+  }
+  
+  .club-detail-modal {
+    max-height: 95vh;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  .modal-header {
+    padding: 20px;
+  }
+  
+  .modal-footer {
+    padding: 15px 20px;
   }
 }
 </style>
