@@ -525,8 +525,7 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 1200px;
-  max-width: 1920px;
+  width: 100%;
 }
 
 .content-wrapper {

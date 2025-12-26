@@ -135,6 +135,15 @@
             <input type="email" id="email" v-model="formData.email" placeholder="请输入您的邮箱">
           </div>
           <div class="form-group">
+            <label for="club">选择俱乐部：</label>
+            <select id="club" v-model="formData.club">
+              <option value="">请选择俱乐部</option>
+              <option v-for="club in availableClubs" :key="club.id" :value="club.name">
+                {{ club.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="experience">经验描述：</label>
             <textarea id="experience" v-model="formData.experience" placeholder="请描述您的相关经验"></textarea>
           </div>
@@ -257,10 +266,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 // 导入活动数据
 import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+// 导入俱乐部数据
+import { clubs } from '../data/clubData.js';
 
 const authStore = useAuthStore();
 
@@ -287,7 +298,19 @@ const formData = ref({
   name: '',
   phone: '',
   email: '',
-  experience: ''
+  experience: '',
+  club: ''
+});
+
+// 根据选中的活动筛选出承接该活动的俱乐部
+const availableClubs = computed(() => {
+  if (!selectedActivity.value) return [];
+  
+  const activityName = selectedActivity.value.name;
+  
+  return clubs.filter(club => 
+    club.allRoutes.some(route => route.name === activityName)
+  );
 });
 const selectedPaymentMethod = ref('');
 const usePoints = ref(false);
@@ -303,7 +326,8 @@ const showJoinModal = (activity) => {
     name: '',
     phone: '',
     email: '',
-    experience: ''
+    experience: '',
+    club: ''
   };
 };
 

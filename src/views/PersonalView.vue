@@ -10,8 +10,8 @@ const user = computed(() => authStore.user);
 const points = computed(() => authStore.points);
 const avatar = computed(() => authStore.avatar);
 const isAuthenticated = computed(() => authStore.isAuthenticated);
-
-const isLoading = ref(true);
+const joinedActivities = computed(() => authStore.joinedActivities);
+const joinedCourses = computed(() => authStore.joinedCourses);
 
 const activeTab = ref('profile');
 const rechargeAmount = ref('');
@@ -32,25 +32,6 @@ const paymentMethods = [
   { id: 'alipay', name: '支付宝', icon: '💙' },
   { id: 'card', name: '银行卡', icon: '💳' }
 ];
-
-const joinedActivities = ref([
-  {
-    id: 1,
-    name: '周末登山活动',
-    location: '北京香山',
-    date: '2024-01-20',
-    status: '已完成',
-    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=400'
-  },
-  {
-    id: 2,
-    name: '野外露营体验',
-    location: '怀柔雁栖湖',
-    date: '2024-02-15',
-    status: '进行中',
-    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=400'
-  }
-]);
 
 const startEditing = () => {
   editForm.value = {
@@ -109,13 +90,13 @@ const handleRecharge = () => {
   showPaymentModal.value = true;
 };
 
-const confirmPayment = () => {
+const confirmPayment = async () => {
   if (!selectedPaymentMethod.value) {
     alert('请选择支付方式');
     return;
   }
   const amount = parseInt(rechargeAmount.value);
-  authStore.updatePoints(authStore.points + amount);
+  await authStore.rechargePoints(amount);
   alert(`充值成功！${amount} 积分已到账`);
   showPaymentModal.value = false;
   rechargeAmount.value = '';
@@ -144,14 +125,7 @@ const refreshUserData = async () => {
 let refreshInterval = null;
 
 onMounted(async () => {
-  if (!isAuthenticated.value) {
-    router.push('/login');
-    return;
-  }
-  
   await refreshUserData();
-  
-  isLoading.value = false;
   
   refreshInterval = setInterval(async () => {
     await refreshUserData();
@@ -167,11 +141,7 @@ onUnmounted(() => {
 
 <template>
   <div class="personal-page">
-    <div v-if="isLoading" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p>加载中...</p>
-    </div>
-    <div v-else class="page-container">
+    <div class="page-container">
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="logo">
@@ -218,19 +188,19 @@ onUnmounted(() => {
               <p>{{ user?.email || '未登录' }}</p>
             </div>
             <div class="user-stats">
-              <div class="stat-item">
-                <span class="stat-label">积分</span>
-                <span class="stat-value">{{ points }}</span>
+                <div class="stat-item">
+                  <span class="stat-label">积分</span>
+                  <span class="stat-value">{{ points }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">活动数</span>
+                  <span class="stat-value">{{ joinedActivities.length + joinedCourses.length }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">会员等级</span>
+                  <span class="stat-value">普通会员</span>
+                </div>
               </div>
-              <div class="stat-item">
-                <span class="stat-label">活动数</span>
-                <span class="stat-value">{{ joinedActivities.length }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">会员等级</span>
-                <span class="stat-value">普通会员</span>
-              </div>
-            </div>
           </header>
 
           <div class="tab-content">
@@ -293,7 +263,7 @@ onUnmounted(() => {
                   <div class="card-icon">🎯</div>
                   <div class="card-content">
                     <label>参与活动数</label>
-                    <div class="value">{{ joinedActivities.length }}</div>
+                    <div class="value">{{ joinedActivities.length + joinedCourses.length }}</div>
                   </div>
                 </div>
               </div>
@@ -301,19 +271,31 @@ onUnmounted(() => {
 
             <div v-if="activeTab === 'activities'" class="activities-section">
               <h2>参与的活动</h2>
-              <div v-if="joinedActivities.length === 0" class="empty-state">
+              <div v-if="joinedActivities.length === 0 && joinedCourses.length === 0" class="empty-state">
                 <div class="empty-icon">📋</div>
-                <p>暂无参与的活动</p>
+                <p>暂无参与的活动和课程</p>
                 <button class="action-btn" @click="browseActivities">去浏览活动</button>
               </div>
               <div v-else class="activities-list">
-                <div v-for="activity in joinedActivities" :key="activity.id" class="activity-card">
+                <div v-for="activity in joinedActivities" :key="'activity-' + activity.id" class="activity-card">
                   <img :src="activity.image" :alt="activity.name" class="activity-image">
                   <div class="activity-info">
                     <h3>{{ activity.name }}</h3>
                     <p class="location">📍 {{ activity.location }}</p>
                     <p class="date">📅 {{ activity.date }}</p>
+                    <p v-if="activity.club" class="club">🏔️ {{ activity.club }}</p>
                     <span :class="['status', activity.status]">{{ activity.status }}</span>
+                  </div>
+                </div>
+                <div v-for="course in joinedCourses" :key="'course-' + course.id" class="activity-card course-card">
+                  <img :src="course.image" :alt="course.name" class="activity-image">
+                  <div class="activity-info">
+                    <h3>{{ course.name }}</h3>
+                    <p class="location">📚 {{ course.category }}</p>
+                    <p class="date">📅 {{ course.date }}</p>
+                    <p class="duration">⏱️ {{ course.duration }}</p>
+                    <p class="price">💰 ¥{{ course.price }}</p>
+                    <span :class="['status', course.status]">{{ course.status }}</span>
                   </div>
                 </div>
               </div>
@@ -395,7 +377,7 @@ onUnmounted(() => {
 .page-container {
   display: flex;
   min-height: calc(100vh - 80px);
-  max-width: 1800px;
+  max-width: 1440px;
   margin: 0 auto;
   width: 100%;
 }
@@ -482,8 +464,9 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 1200px;
-  max-width: 1920px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .content-wrapper {
@@ -799,6 +782,29 @@ onUnmounted(() => {
   font-size: 14px;
 }
 
+.activity-info p.club {
+  color: #667eea;
+  font-weight: 500;
+}
+
+.course-card {
+  border: 2px solid #667eea;
+}
+
+.course-card .activity-info h3 {
+  color: #667eea;
+}
+
+.activity-info p.duration {
+  color: #28a745;
+  font-weight: 500;
+}
+
+.activity-info p.price {
+  color: #dc3545;
+  font-weight: 600;
+}
+
 .status {
   display: inline-block;
   padding: 5px 12px;
@@ -1037,36 +1043,6 @@ onUnmounted(() => {
 .confirm-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-}
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 80px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 20px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.loading-container p {
-  color: white;
-  font-size: 18px;
-  font-weight: 500;
 }
 
 @media (max-width: 1600px) {

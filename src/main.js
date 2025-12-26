@@ -14,6 +14,6 @@ app.use(router)
 
 // 初始化认证状态
 const authStore = useAuthStore();
-authStore.initAuth();
-
-app.mount('#app')
+authStore.initAuth().then(() => {
+  app.mount('#app')
+});

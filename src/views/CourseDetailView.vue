@@ -14,7 +14,8 @@
             v-for="tab in [
               { id: 'overview', label: '课程概览', icon: '📖' },
               { id: 'details', label: '课程详情', icon: '📋' },
-              { id: 'reviews', label: '课程评价', icon: '⭐' }
+              { id: 'reviews', label: '课程评价', icon: '⭐' },
+              { id: 'register', label: '报名课程', icon: '📝' }
             ]"
             :key="tab.id"
             :class="['nav-item', { active: activeTab === tab.id }]"
@@ -156,6 +157,136 @@
                   <button @click="submitEvaluation" class="btn-submit">提交评价</button>
                 </div>
               </div>
+
+              <div v-if="activeTab === 'register'" class="register-section">
+                <h2>报名课程</h2>
+                
+                <div v-if="!authStore.isAuthenticated" class="login-prompt">
+                  <div class="prompt-icon">🔒</div>
+                  <h3>请先登录</h3>
+                  <p>您需要登录后才能报名课程</p>
+                  <button @click="goToLogin" class="btn-login">去登录</button>
+                </div>
+
+                <div v-else class="registration-form">
+                  <div class="course-summary">
+                    <img :src="course.image" :alt="course.name" class="course-thumbnail">
+                    <div class="course-info">
+                      <h3>{{ course.name }}</h3>
+                      <div class="info-row">
+                        <span class="label">课程类别：</span>
+                        <span class="value">{{ course.category }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">课程难度：</span>
+                        <span class="value">{{ course.difficulty }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">课程时长：</span>
+                        <span class="value">{{ course.duration }}</span>
+                      </div>
+                      <div class="info-row">
+                        <span class="label">课程价格：</span>
+                        <span class="value price">¥{{ course.price }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <form @submit.prevent="submitRegistration">
+                    <div class="form-group">
+                      <label for="name">真实姓名 *</label>
+                      <input 
+                        type="text" 
+                        id="name" 
+                        v-model="formData.name" 
+                        placeholder="请输入您的真实姓名"
+                        class="form-input"
+                        required
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label for="phone">联系电话 *</label>
+                      <input 
+                        type="tel" 
+                        id="phone" 
+                        v-model="formData.phone" 
+                        placeholder="请输入您的联系电话"
+                        class="form-input"
+                        required
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label for="email">电子邮箱 *</label>
+                      <input 
+                        type="email" 
+                        id="email" 
+                        v-model="formData.email" 
+                        placeholder="请输入您的电子邮箱"
+                        class="form-input"
+                        required
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label for="experience">户外运动经验</label>
+                      <textarea 
+                        id="experience" 
+                        v-model="formData.experience" 
+                        placeholder="请简单描述您的户外运动经验（选填）"
+                        class="form-textarea"
+                        rows="3"
+                      ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="notes">备注信息</label>
+                      <textarea 
+                        id="notes" 
+                        v-model="formData.notes" 
+                        placeholder="其他需要说明的信息（选填）"
+                        class="form-textarea"
+                        rows="2"
+                      ></textarea>
+                    </div>
+
+                    <div class="payment-section">
+                      <h4>支付方式</h4>
+                      <div class="payment-methods">
+                        <label class="payment-method" :class="{ active: formData.paymentMethod === 'points' }">
+                          <input type="radio" v-model="formData.paymentMethod" value="points">
+                          <div class="method-info">
+                            <span class="method-name">积分支付</span>
+                            <span class="method-desc">当前积分：{{ authStore.points }}</span>
+                          </div>
+                        </label>
+                        <label class="payment-method" :class="{ active: formData.paymentMethod === 'wechat' }">
+                          <input type="radio" v-model="formData.paymentMethod" value="wechat">
+                          <div class="method-info">
+                            <span class="method-name">微信支付</span>
+                            <span class="method-desc">使用微信扫码支付</span>
+                          </div>
+                        </label>
+                        <label class="payment-method" :class="{ active: formData.paymentMethod === 'alipay' }">
+                          <input type="radio" v-model="formData.paymentMethod" value="alipay">
+                          <div class="method-info">
+                            <span class="method-name">支付宝支付</span>
+                            <span class="method-desc">使用支付宝扫码支付</span>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="total-price">
+                      <span>课程总价：</span>
+                      <span class="price">¥{{ course.price }}</span>
+                    </div>
+
+                    <button type="submit" class="btn-submit">确认报名</button>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
           <div v-else class="course-not-found">
@@ -186,6 +317,15 @@ const newEvaluation = ref({
   user: authStore.user?.username || '',
   rating: 0,
   content: ''
+});
+
+const formData = ref({
+  name: '',
+  phone: '',
+  email: '',
+  experience: '',
+  notes: '',
+  paymentMethod: 'points'
 });
 
 const descriptionParagraphs = computed(() => {
@@ -227,6 +367,66 @@ const submitEvaluation = () => {
   };
 
   alert('评价提交成功！');
+};
+
+const submitRegistration = () => {
+  if (!authStore.isAuthenticated) {
+    alert('请先登录');
+    return;
+  }
+
+  if (!formData.value.name.trim()) {
+    alert('请输入真实姓名');
+    return;
+  }
+
+  if (!formData.value.phone.trim()) {
+    alert('请输入联系电话');
+    return;
+  }
+
+  if (!formData.value.email.trim()) {
+    alert('请输入电子邮箱');
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.value.email)) {
+    alert('请输入有效的电子邮箱地址');
+    return;
+  }
+
+  if (formData.value.paymentMethod === 'points') {
+    if (authStore.points < course.value.price) {
+      alert('您的积分不足，请先充值');
+      return;
+    }
+    try {
+      authStore.deductPoints(course.value.price);
+    } catch (error) {
+      alert(error.message);
+      return;
+    }
+  }
+
+  try {
+    authStore.joinCourse(course.value, formData.value);
+    alert('课程报名成功！');
+    formData.value = {
+      name: '',
+      phone: '',
+      email: '',
+      experience: '',
+      notes: '',
+      paymentMethod: 'points'
+    };
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+const goToLogin = () => {
+  router.push('/login');
 };
 
 const goBack = () => {
@@ -274,7 +474,7 @@ let refreshInterval = null;
 .page-container {
   display: flex;
   min-height: calc(100vh - 80px);
-  max-width: 1800px;
+  max-width: 1440px;
   margin: 0 auto;
   width: 100%;
 }
@@ -358,8 +558,9 @@ let refreshInterval = null;
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 1200px;
-  max-width: 1920px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .content-wrapper {
@@ -429,7 +630,8 @@ let refreshInterval = null;
 
 .overview-section,
 .details-section,
-.reviews-section {
+.reviews-section,
+.register-section {
   animation: fadeIn 0.5s ease;
 }
 
@@ -446,7 +648,8 @@ let refreshInterval = null;
 
 .overview-section h2,
 .details-section h2,
-.reviews-section h2 {
+.reviews-section h2,
+.register-section h2 {
   font-size: 1.8rem;
   color: #2c3e50;
   margin-bottom: 2rem;
@@ -662,6 +865,179 @@ let refreshInterval = null;
   padding: 3rem;
   color: #999;
   font-size: 1.1rem;
+}
+
+.login-prompt {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+}
+
+.prompt-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-prompt h3 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.login-prompt p {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.btn-login {
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.registration-form {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.course-summary {
+  display: flex;
+  gap: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.course-thumbnail {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.course-info {
+  flex: 1;
+}
+
+.course-info h3 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.info-row {
+  display: flex;
+  margin-bottom: 0.5rem;
+}
+
+.info-row .label {
+  font-weight: 600;
+  color: #7f8c8d;
+  min-width: 100px;
+}
+
+.info-row .value {
+  color: #2c3e50;
+}
+
+.info-row .value.price {
+  color: #e74c3c;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.payment-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.payment-section h4 {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+}
+
+.payment-methods {
+  display: grid;
+  gap: 1rem;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.payment-method:hover {
+  border-color: #667eea;
+}
+
+.payment-method.active {
+  border-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+}
+
+.payment-method input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.method-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.method-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.method-desc {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.total-price {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
+
+.total-price .price {
+  color: #e74c3c;
+  font-weight: 700;
+  font-size: 1.8rem;
 }
 
 .course-not-found {

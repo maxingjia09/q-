@@ -380,13 +380,14 @@ const navigateTo = (targetRoute) => {
 }
 
 .user-avatar-container {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 2px;
   cursor: pointer;
   transition: all 0.3s;
+  flex-shrink: 0;
 }
 
 .user-avatar-container:hover {

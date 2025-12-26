@@ -63,7 +63,8 @@ const router = createRouter({
     {
       path: '/clubs/:id',
       name: 'club-detail',
-      component: ClubDetailView
+      component: ClubDetailView,
+      props: true
     },
     {
       path: '/certification-apply',
@@ -77,8 +78,8 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
   
-  // 确保认证状态已经初始化
-  if (!authStore.isAuthenticated && !authStore.user && localStorage.getItem('authToken')) {
+  // 如果有token但没有用户信息，先初始化认证状态
+  if (localStorage.getItem('authToken') && !authStore.user) {
     await authStore.initAuth();
   }
   

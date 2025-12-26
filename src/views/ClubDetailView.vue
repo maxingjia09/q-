@@ -19,7 +19,7 @@
             ]"
             :key="tab.id"
             :class="['nav-item', { active: activeTab === tab.id }]"
-            @click="activeTab = tab.id"
+            @click="handleTabClick(tab.id)"
           >
             <span class="icon">{{ tab.icon }}</span>
             <span>{{ tab.label }}</span>
@@ -176,14 +176,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount } from 'vue';
+import { ref, onBeforeMount } from 'vue';
 import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
 import { clubs } from '../data/clubData';
 
 const route = useRoute();
 const router = useRouter();
+const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: true
+  }
+});
 const club = ref(null);
 const activeTab = ref('overview');
+
+const handleTabClick = (tabId) => {
+  activeTab.value = tabId;
+};
 
 const loadClub = (id) => {
   const clubId = parseInt(id);
@@ -201,7 +211,7 @@ const goBack = () => {
 };
 
 onBeforeMount(() => {
-  loadClub(route.params.id);
+  loadClub(props.id);
 });
 
 onBeforeRouteUpdate((to) => {
@@ -219,7 +229,7 @@ onBeforeRouteUpdate((to) => {
 .page-container {
   display: flex;
   min-height: calc(100vh - 80px);
-  max-width: 1800px;
+  max-width: 1440px;
   margin: 0 auto;
   width: 100%;
 }
@@ -231,11 +241,10 @@ onBeforeRouteUpdate((to) => {
   border-right: 1px solid #e9ecef;
   display: flex;
   flex-direction: column;
-  position: sticky;
-  top: 80px;
   height: calc(100vh - 80px);
   overflow-y: auto;
-  z-index: 100;
+  z-index: 1000;
+  pointer-events: auto;
 }
 
 .sidebar-header {
@@ -275,7 +284,8 @@ onBeforeRouteUpdate((to) => {
   margin: 5px 15px;
   border-radius: 8px;
   position: relative;
-  z-index: 101;
+  z-index: 1001;
+  pointer-events: auto;
 }
 
 .nav-item:hover {
@@ -306,8 +316,9 @@ onBeforeRouteUpdate((to) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 1200px;
-  max-width: 1920px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .content-wrapper {
@@ -758,6 +769,56 @@ onBeforeRouteUpdate((to) => {
 
   .main-content {
     min-width: 100%;
+  }
+
+  .content-wrapper {
+    padding: 20px;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+  }
+
+  .main-content {
+    min-width: auto;
   }
 
   .content-wrapper {

@@ -109,6 +109,7 @@ const maxTranslate = ref(0);
 const isDragging = ref(false);
 const startX = ref(0);
 const initialTranslate = ref(0);
+const carouselElement = ref(null);
 
 // 视频轮播控制
 const prevVideo = () => {
@@ -154,9 +155,11 @@ const endDrag = () => {
 onMounted(() => {
   handleResize();
   window.addEventListener('resize', handleResize);
-  const carousel = document.querySelector('.video-cards');
-  carousel.addEventListener('mousedown', startDrag);
-  carousel.addEventListener('touchstart', startDrag);
+  carouselElement.value = document.querySelector('.video-cards');
+  if (carouselElement.value) {
+    carouselElement.value.addEventListener('mousedown', startDrag);
+    carouselElement.value.addEventListener('touchstart', startDrag);
+  }
   document.addEventListener('mousemove', drag);
   document.addEventListener('touchmove', drag);
   document.addEventListener('mouseup', endDrag);
@@ -165,9 +168,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
-  const carousel = document.querySelector('.video-cards');
-  carousel.removeEventListener('mousedown', startDrag);
-  carousel.removeEventListener('touchstart', startDrag);
+  if (carouselElement.value) {
+    carouselElement.value.removeEventListener('mousedown', startDrag);
+    carouselElement.value.removeEventListener('touchstart', startDrag);
+  }
   document.removeEventListener('mousemove', drag);
   document.removeEventListener('touchmove', drag);
   document.removeEventListener('mouseup', endDrag);

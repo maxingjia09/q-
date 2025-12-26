@@ -7,6 +7,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('authToken') || null);
   const points = ref(0); // 用户积分
   const joinedActivities = ref([]); // 用户参与的活动
+  const joinedCourses = ref([]); // 用户报名的课程
   const avatar = ref(localStorage.getItem('userAvatar') || null); // 用户头像
   const isAuthenticated = computed(() => !!token.value);
 
@@ -53,6 +54,21 @@ export const useAuthStore = defineStore('auth', () => {
   const saveJoinedActivities = () => {
     if (user.value) {
       localStorage.setItem(`user_${user.value.id}_activities`, JSON.stringify(joinedActivities.value));
+    }
+  };
+
+  // 从localStorage获取用户报名的课程
+  const loadJoinedCourses = () => {
+    if (user.value) {
+      const savedCourses = localStorage.getItem(`user_${user.value.id}_courses`);
+      joinedCourses.value = savedCourses ? JSON.parse(savedCourses) : [];
+    }
+  };
+
+  // 保存用户报名的课程到localStorage
+  const saveJoinedCourses = () => {
+    if (user.value) {
+      localStorage.setItem(`user_${user.value.id}_courses`, JSON.stringify(joinedCourses.value));
     }
   };
 
@@ -206,6 +222,7 @@ export const useAuthStore = defineStore('auth', () => {
         day: 'numeric'
       }),
       status: '进行中',
+      club: formData.club || '',
       formData: formData
     };
 
@@ -216,6 +233,41 @@ export const useAuthStore = defineStore('auth', () => {
     saveJoinedActivities();
     
     return joinedActivity;
+  };
+
+  // 报名课程
+  const joinCourse = (course, formData) => {
+    if (!isAuthenticated.value || !user.value) {
+      throw new Error('请先登录');
+    }
+
+    // 生成课程ID（如果没有）
+    const courseId = course.id || Date.now();
+    
+    // 创建报名的课程记录
+    const joinedCourse = {
+      id: courseId,
+      name: course.name,
+      category: course.category,
+      image: course.image,
+      price: course.price,
+      duration: course.duration,
+      date: new Date().toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      status: '学习中',
+      formData: formData
+    };
+
+    // 添加到用户报名的课程列表
+    joinedCourses.value.push(joinedCourse);
+    
+    // 保存到localStorage
+    saveJoinedCourses();
+    
+    return joinedCourse;
   };
 
   // 初始化认证状态
@@ -253,6 +305,9 @@ export const useAuthStore = defineStore('auth', () => {
         
         // 加载用户参与的活动
         loadJoinedActivities();
+        
+        // 加载用户报名的课程
+        loadJoinedCourses();
       } else {
         console.log('User not found, clearing token');
         // 如果找不到用户，清除token
@@ -320,6 +375,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     points,
     joinedActivities,
+    joinedCourses,
     avatar,
     isAuthenticated,
     login,
@@ -329,6 +385,7 @@ export const useAuthStore = defineStore('auth', () => {
     deductPoints,
     initAuth,
     joinActivity,
+    joinCourse,
     updateUserProfile,
     updateAvatar
   };
