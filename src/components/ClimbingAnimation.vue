@@ -44,7 +44,7 @@ const startAnimation = () => {
   climberPosition.value = 400; // 重置位置
   
   // 使用requestAnimationFrame创建平滑动画
-  const duration = 2000; // 动画持续时间（毫秒）
+  const duration = 1000; // 动画持续时间（毫秒）
   const startTime = performance.now();
   const endPosition = 50; // 结束位置
   const startPosition = 400;
