@@ -16,7 +16,7 @@
 .hero-wrapper {
     width: 100%;
     height: 600px;
-    background-image: url('@/assets/zf.jpg');
+    background-image: url('https://picsum.photos/id/1043/1920/1080');
     background-size: cover;
     background-position: center;
     overflow: hidden;

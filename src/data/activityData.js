@@ -1,20 +1,20 @@
 // 活动数据文件
-// 导入图片
+// 使用相对路径引用图片
 // 徒步活动图片
-import hutiaoxiaImage from '../assets/h.jpg';
-import yubengImage from '../assets/y (1).jpg';
-import gonggaImage from '../assets/g (2).jpg';
-import kanasImage from '../assets/g (1).jpg';
+const hutiaoxiaImage = '../assets/h.jpg';
+const yubengImage = '../assets/y (1).jpg';
+const gonggaImage = '../assets/g (2).jpg';
+const kanasImage = '../assets/g (1).jpg';
 // 攀岩活动图片
-import yangshuoImage from '../assets/ys.PNG';
-import baiheImage from '../assets/bh.PNG';
-import shiguImage from '../assets/sg.PNG';
-import mashanImage from '../assets/ms.PNG';
+const yangshuoImage = '../assets/ys.PNG';
+const baiheImage = '../assets/bh.PNG';
+const shiguImage = '../assets/sg.PNG';
+const mashanImage = '../assets/ms.PNG';
 // 雪山攀登图片
-import peak3Image from '../assets/3.jpg';
-import peak4Image from '../assets/4.jpg';
-import peak5Image from '../assets/5.jpg';
-import peak2Image from '../assets/2.jpg';
+const peak3Image = '../assets/3.jpg';
+const peak4Image = '../assets/4.jpg';
+const peak5Image = '../assets/5.jpg';
+const peak2Image = '../assets/2.jpg';
 
 // 徒步路线数据
 export const hikingRoutes = [

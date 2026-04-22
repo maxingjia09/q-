@@ -1,9 +1,10 @@
 // 课程数据文件
 // 导入图片
-import mountainExplorationImage from '../assets/sd.PNG';
-import mountainRescueImage from '../assets/sd.PNG';
-import mountainSurvivalImage from '../assets/sc.PNG';
-import youthCourseImage from '../assets/qsn.PNG';
+// 使用相对路径引用图片
+const mountainExplorationImage = '../assets/sd.PNG';
+const mountainRescueImage = '../assets/sd.PNG';
+const mountainSurvivalImage = '../assets/sc.PNG';
+const youthCourseImage = '../assets/qsn.PNG';
 
 export const courses = [
   {

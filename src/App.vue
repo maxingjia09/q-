@@ -36,7 +36,7 @@ body {
   color: #2c3e50;
   margin: 0;
   padding: 0;
-  background-image: url('@/assets/zf.jpg');
+  background-image: url('https://picsum.photos/id/1043/1920/1080');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;

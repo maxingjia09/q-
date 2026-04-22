@@ -15,7 +15,7 @@
         <div class="video-cards" :style="{ transform: `translateX(${videoTranslate}px)` }">
           <div class="video-card">
             <div class="video-thumbnail">
-              <img src="../assets/xn.PNG" alt="青少年雪鸟基础工具课程">
+              <img src="https://picsum.photos/id/237/400/225" alt="青少年雪鸟基础工具课程">
               <div class="play-icon">▶</div>
             </div>
             <div class="video-title">青少年雪鸟基础工具课程</div>
@@ -23,7 +23,7 @@
 
           <div class="video-card">
             <div class="video-thumbnail">
-              <img src="../assets/tx.PNG" alt="探险之旅">
+              <img src="https://picsum.photos/id/238/400/225" alt="探险之旅">
               <div class="play-icon">▶</div>
             </div>
             <div class="video-title">探险之旅 - 秘境之路</div>
@@ -31,7 +31,7 @@
 
           <div class="video-card">
             <div class="video-thumbnail">
-              <img src="../assets/ggxs.PNG" alt="英雄之路">
+              <img src="https://picsum.photos/id/239/400/225" alt="英雄之路">
               <div class="play-icon">▶</div>
             </div>
             <div class="video-title">英雄之路 - 2019雪山挑战赛</div>
@@ -39,7 +39,7 @@
 
           <div class="video-card">
             <div class="video-thumbnail">
-              <img src="../assets/sy.PNG" alt="户外摄影技巧">
+              <img src="https://picsum.photos/id/240/400/225" alt="户外摄影技巧">
               <div class="play-icon">▶</div>
             </div>
             <div class="video-title">户外摄影技巧与实践</div>
@@ -57,7 +57,7 @@
         <div class="news-grid">
         <div class="news-card">
           <div class="news-image">
-            <img src="../assets/tq.PNG" alt="活动日记">
+            <img src="https://picsum.photos/id/241/400/225" alt="活动日记">
           </div>
           <div class="news-content">
             <h3 class="news-title">活动日记 | 七步半脊峰的'荣耀之路'</h3>
@@ -67,7 +67,7 @@
 
         <div class="news-card">
           <div class="news-image">
-            <img src="../assets/dk.PNG" alt="荣耀之路">
+            <img src="https://picsum.photos/id/242/400/225" alt="荣耀之路">
           </div>
           <div class="news-content">
             <h3 class="news-title">荣耀之路回顾 | 前方有风雨，因为有你们照亮</h3>
@@ -77,7 +77,7 @@
 
         <div class="news-card">
           <div class="news-image">
-            <img src="../assets/hd.PNG" alt="人间四月天">
+            <img src="https://picsum.photos/id/243/400/225" alt="人间四月天">
           </div>
           <div class="news-content">
             <h3 class="news-title">活动回顾 | 人间四月天，不负春光去踏青</h3>
@@ -87,7 +87,7 @@
 
         <div class="news-card">
           <div class="news-image">
-            <img src="../assets/tq.PNG" alt="成长计划">
+            <img src="https://picsum.photos/id/244/400/225" alt="成长计划">
           </div>
           <div class="news-content">
             <h3 class="news-title">荣耀之路·成长的阶梯挑战 | 青少年体验式新标课程</h3>
