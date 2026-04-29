@@ -185,25 +185,25 @@ const courses = ref([
     id: 1,
     title: '山地探索课程',
     description: '适合初学者的山地探索技能培训',
-    image: 'https://picsum.photos/id/29/600/400'
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=400&fit=crop'
   },
   {
     id: 2,
     title: '山地救援课程',
     description: '专业的山地救援技术培训',
-    image: '@/assets/sd.PNG'
+    image: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=600&h=400&fit=crop'
   },
   {
     id: 3,
     title: '山地生存课程',
     description: '掌握野外生存技能',
-    image: '@/assets/sc.PNG'
+    image: 'https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?w=600&h=400&fit=crop'
   },
   {
     id: 4,
     title: '青少年课程',
     description: '专为青少年设计的户外教育课程',
-    image: '@/assets/qsn.PNG'
+    image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&h=400&fit=crop'
   }
 ]);
 
@@ -215,10 +215,10 @@ onMounted(() => {
     router.push('/login');
     return;
   }
-  
+
   // 加载统计数据
   loadStats();
-  
+
   // 加载用户数据
   loadUsers();
 });

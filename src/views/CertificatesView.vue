@@ -1,14 +1,17 @@
 <template>
-  <section id="certificates" class="certificate-section">
-    <div class="container">
-      <div class="section-header">
-        <h2 class="section-title">权威认证</h2>
-        <div class="section-divider"></div>
+  <div class="certificates-page">
+    <!-- 页面标题区域 -->
+    <div class="page-header">
+      <div class="container">
+        <h1 class="page-title">权威认证</h1>
+        <p class="page-description">国际认可的教练资质，为您的专业能力背书</p>
       </div>
+    </div>
 
+    <div class="container">
       <div class="certificate-content">
         <div class="certificate-image">
-          <img src="https://picsum.photos/id/24/800/1000" alt="教练证书" class="certificate-img">
+          <img src="https://images.unsplash.com/photo-1589330694653-1a6fcda5d9a5?w=800&h=1000&fit=crop" alt="教练证书" class="certificate-img">
         </div>
 
         <div class="certificate-details">
@@ -19,16 +22,16 @@
 
           <div class="certification-badges">
             <div class="badge-item">
-              <img src="https://picsum.photos/id/25/100/100" alt="认证标志1" class="badge-img">
+              <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop" alt="认证标志1" class="badge-img">
             </div>
             <div class="badge-item">
-              <img src="https://picsum.photos/id/26/100/100" alt="认证标志2" class="badge-img">
+              <img src="https://images.unsplash.com/photo-1584291527908-033f4c5e24e2?w=100&h=100&fit=crop" alt="认证标志2" class="badge-img">
             </div>
             <div class="badge-item">
-              <img src="https://picsum.photos/id/27/100/100" alt="认证标志3" class="badge-img">
+              <img src="https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=100&h=100&fit=crop" alt="认证标志3" class="badge-img">
             </div>
             <div class="badge-item">
-              <img src="https://picsum.photos/id/28/100/100" alt="认证标志4" class="badge-img">
+              <img src="https://images.unsplash.com/photo-1578269174936-2709b6aeb913?w=100&h=100&fit=crop" alt="认证标志4" class="badge-img">
             </div>
           </div>
 
@@ -46,129 +49,52 @@
         </div>
       </div>
     </div>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-.certificate-section {
-  padding: 5rem 0;
-  background-color: white;
+.certificates-page {
+  min-height: 100vh;
+  padding-bottom: 5rem;
+}
+
+.page-header {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)),
+              url('https://images.unsplash.com/photo-1518105779142-d975f22f1b0a?w=1920&h=600&fit=crop');
+  background-size: cover;
+  background-position: center;
+  padding: 6rem 0 4rem;
+  text-align: center;
+  color: white;
+}
+
+.page-title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.page-description {
+  font-size: 1.2rem;
+  opacity: 0.9;
 }
 
 .container {
-  max-width: 1800px; /* 与App.vue中的container保持一致 */
-  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 2rem;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: sectionHeaderFadeIn 0.8s ease-out forwards;
-  animation-delay: 0.2s;
-}
-
-.section-title {
-  font-size: 2.5rem;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  display: inline-block;
-  position: relative;
-  padding: 0 2.5rem;
-}
-
-.section-title::before,
-.section-title::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 60px;
-  height: 60px;
-  opacity: 0;
-  animation: climberFadeIn 0.5s ease-out forwards;
-  animation-delay: 0.5s;
-}
-
-.section-title::before {
-  left: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
-  background-size: contain;
-  background-repeat: no-repeat;
-}
-
-.section-title::after {
-  right: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
-  background-size: contain;
-  background-repeat: no-repeat;
-  transform: translateY(-50%) rotateY(180deg);
-}
-
-.section-divider {
-  width: 0;
-  height: 4px;
-  background-color: #3498db;
-  margin: 0 auto;
-  animation: dividerGrow 1s ease-out forwards;
-  animation-delay: 0.8s;
-}
-
-/* 动画关键帧 */
-@keyframes sectionHeaderFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes climberFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-}
-
-.section-title::after {
-  animation-name: climberFadeInAfter;
-}
-
-@keyframes climberFadeInAfter {
-  from {
-    opacity: 0;
-    transform: translateY(-50%) scale(0.8) rotateY(180deg);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(-50%) scale(1) rotateY(180deg);
-  }
-}
-
-@keyframes dividerGrow {
-  from {
-    width: 0;
-  }
-  to {
-    width: 80px;
-  }
 }
 
 .certificate-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  gap: 4rem;
   align-items: center;
+  margin-top: 4rem;
+  background: white;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .certificate-image {
@@ -177,16 +103,19 @@
 
 .certificate-img {
   width: 100%;
-  border-radius: 8px;
+  max-width: 500px;
+  border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  margin: 0 auto;
+  display: block;
 }
 
 .certificate-details {
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .certificate-title {
-  font-size: 1.8rem;
+  font-size: 2rem;
   color: #2c3e50;
   margin-bottom: 1.5rem;
 }
@@ -236,6 +165,7 @@
   padding-left: 1.5rem;
   position: relative;
   line-height: 1.6;
+  font-size: 1rem;
 }
 
 .benefit-item:before {
@@ -247,12 +177,12 @@
 }
 
 .btn-apply {
-  padding: 0.9rem 2.2rem;
+  padding: 1rem 2.5rem;
   background-color: #3498db;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -263,30 +193,31 @@
 .btn-apply:hover {
   background-color: #2980b9;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
+/* 响应式设计 */
 @media (max-width: 992px) {
   .certificate-content {
     grid-template-columns: 1fr;
+    gap: 2rem;
   }
 
   .certificate-image {
-    max-width: 600px;
+    max-width: 500px;
     margin: 0 auto;
   }
 }
 
 @media (max-width: 768px) {
-  .section-title {
+  .page-title {
     font-size: 2rem;
   }
 
   .certificate-title {
     font-size: 1.5rem;
   }
-}
 
-@media (max-width: 480px) {
   .certification-badges {
     flex-wrap: wrap;
     justify-content: center;

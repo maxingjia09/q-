@@ -230,14 +230,14 @@ onUnmounted(() => {
 
 .section-title::before {
   left: 0;
-  background-image: url('/src/assets/climbingAnimation.svg');
+  background-image: url('@/assets/climbingAnimation.svg');
   background-size: contain;
   background-repeat: no-repeat;
 }
 
 .section-title::after {
   right: 0;
-  background-image: url('/src/assets/climbingAnimation.svg');
+  background-image: url('@/assets/climbingAnimation.svg');
   background-size: contain;
   background-repeat: no-repeat;
   transform: translateY(-50%) rotateY(180deg);

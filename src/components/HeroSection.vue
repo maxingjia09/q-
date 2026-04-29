@@ -16,7 +16,7 @@
 .hero-wrapper {
     width: 100%;
     height: 600px;
-    background-image: url('https://picsum.photos/id/1043/1920/1080');
+    background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?w=1920&h=1080&fit=crop');
     background-size: cover;
     background-position: center;
     overflow: hidden;

@@ -1,20 +1,20 @@
 // 活动数据文件
-// 使用相对路径引用图片
+// 使用可靠的Unsplash图片链接
 // 徒步活动图片
-const hutiaoxiaImage = '../assets/h.jpg';
-const yubengImage = '../assets/y (1).jpg';
-const gonggaImage = '../assets/g (2).jpg';
-const kanasImage = '../assets/g (1).jpg';
+const hutiaoxiaImage = 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?w=800&h=600&fit=crop';
+const yubengImage = 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&h=600&fit=crop';
+const gonggaImage = 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?w=800&h=600&fit=crop';
+const kanasImage = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop';
 // 攀岩活动图片
-const yangshuoImage = '../assets/ys.PNG';
-const baiheImage = '../assets/bh.PNG';
-const shiguImage = '../assets/sg.PNG';
-const mashanImage = '../assets/ms.PNG';
+const yangshuoImage = 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&h=600&fit=crop';
+const baiheImage = 'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=800&h=600&fit=crop';
+const shiguImage = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop';
+const mashanImage = 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=600&fit=crop';
 // 雪山攀登图片
-const peak3Image = '../assets/3.jpg';
-const peak4Image = '../assets/4.jpg';
-const peak5Image = '../assets/5.jpg';
-const peak2Image = '../assets/2.jpg';
+const peak3Image = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop';
+const peak4Image = 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop';
+const peak5Image = 'https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?w=800&h=600&fit=crop';
+const peak2Image = 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop';
 
 // 徒步路线数据
 export const hikingRoutes = [

@@ -90,42 +90,37 @@ const menuItems = [
   {
     title: '首页',
     icon: '🏠',
-    route: '#top'
+    route: '/'
   },
   {
     title: '活动报名',
     icon: '📝',
-    route: '#activities'
+    route: '/activities'
   },
   {
     title: '探索俱乐部',
     icon: '⛰️',
-    route: '#clubs-section'
+    route: '/clubs'
   },
   {
     title: '课程体系',
     icon: '📚',
-    route: '#courses'
+    route: '/courses'
   },
   {
     title: '权威认证',
     icon: '🏆',
-    route: '#certificates'
+    route: '/certificates'
   },
   {
-    title: '视频专题',
-    icon: '🎬',
-    route: '#video-news-section'
-  },
-  {
-    title: '新闻速递',
-    icon: '📰',
-    route: '#news-section'
+    title: '视频新闻',
+    icon: '📺',
+    route: '/video-news'
   },
   {
     title: 'AI定制路线',
     icon: '🤖',
-    route: '#ai-custom-section'
+    route: '/ai-custom'
   },
   {
     title: '个人中心',
@@ -172,29 +167,7 @@ const isActive = computed(() => (itemRoute) => {
 });
 
 const navigateTo = (targetRoute) => {
-  if (targetRoute.startsWith('#')) {
-    if (route.path !== '/') {
-      router.push('/').then(() => {
-        setTimeout(() => {
-          const element = document.querySelector(targetRoute);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      });
-    } else {
-      const element = document.querySelector(targetRoute);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  } else {
-    if (route.path === '/personal' && targetRoute !== '/personal') {
-      window.location.href = targetRoute;
-    } else {
-      router.push(targetRoute);
-    }
-  }
+  router.push(targetRoute);
   isMobileMenuOpen.value = false;
 };
 </script>

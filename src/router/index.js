@@ -9,6 +9,12 @@ import AdminDashboardView from '../views/AdminDashboardView.vue'
 import CourseDetailView from '../views/CourseDetailView.vue'
 import ClubDetailView from '../views/ClubDetailView.vue'
 import CertificationApplyView from '../views/CertificationApplyView.vue'
+import ActivitiesView from '../views/ActivitiesView.vue'
+import ClubsView from '../views/ClubsView.vue'
+import CoursesView from '../views/CoursesView.vue'
+import CertificatesView from '../views/CertificatesView.vue'
+import VideoNewsView from '../views/VideoNewsView.vue'
+import AICustomView from '../views/AICustomView.vue'
 import { useAuthStore } from '../stores/authStore';
 
 const router = createRouter({
@@ -70,6 +76,36 @@ const router = createRouter({
       path: '/certification-apply',
       name: 'certification-apply',
       component: CertificationApplyView
+    },
+    {
+      path: '/activities',
+      name: 'activities',
+      component: ActivitiesView
+    },
+    {
+      path: '/clubs',
+      name: 'clubs',
+      component: ClubsView
+    },
+    {
+      path: '/courses',
+      name: 'courses',
+      component: CoursesView
+    },
+    {
+      path: '/certificates',
+      name: 'certificates',
+      component: CertificatesView
+    },
+    {
+      path: '/video-news',
+      name: 'video-news',
+      component: VideoNewsView
+    },
+    {
+      path: '/ai-custom',
+      name: 'ai-custom',
+      component: AICustomView
     }
   ],
 })

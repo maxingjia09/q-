@@ -36,7 +36,7 @@ body {
   color: #2c3e50;
   margin: 0;
   padding: 0;
-  background-image: url('https://picsum.photos/id/1043/1920/1080');
+  background-image: url('https://images.unsplash.com/photo-1551632811-561732d1e306?w=1920&h=1080&fit=crop');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
