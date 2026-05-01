@@ -1,8 +1,13 @@
+<script setup>
+import climbingSvg from '@/assets/climbingAnimation.svg';
+const sectionTitleStyle = { '--climbing-svg': `url(${climbingSvg})` };
+</script>
+
 <template>
   <section id="certificates" class="certificate-section">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">权威认证</h2>
+        <h2 class="section-title" :style="sectionTitleStyle">权威认证</h2>
         <div class="section-divider"></div>
       </div>
 
@@ -95,14 +100,14 @@
 
 .section-title::before {
   left: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
 }
 
 .section-title::after {
   right: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
   transform: translateY(-50%) rotateY(180deg);

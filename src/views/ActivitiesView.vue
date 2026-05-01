@@ -5,8 +5,10 @@ import { useAuthStore } from '../stores/authStore';
 import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
 // 导入俱乐部数据
 import { clubs } from '../data/clubData.js';
+import headerBgImg from '@/assets/ga.jpg';
 
 const authStore = useAuthStore();
+const headerStyle = { backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${headerBgImg})` };
 
 // 活动类型切换
 const activeTab = ref('hiking');
@@ -154,7 +156,7 @@ const submitForm = () => {
 <template>
   <div class="activities-page">
     <!-- 页面标题区域 -->
-    <div class="page-header">
+    <div class="page-header" :style="headerStyle">
       <div class="container">
         <h1 class="page-title">活动报名</h1>
         <p class="page-description">探索精彩户外活动，开启您的冒险之旅</p>
@@ -427,8 +429,6 @@ const submitForm = () => {
 }
 
 .page-header {
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)),
-              url('https://images.unsplash.com/photo-1533240332313-0db49b459ad6?w=1920&h=600&fit=crop');
   background-size: cover;
   background-position: center;
   padding: 6rem 0 4rem;

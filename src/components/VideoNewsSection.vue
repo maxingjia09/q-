@@ -3,7 +3,7 @@
     <div class="container">
       <!-- 视频专题部分 -->
       <div class="section-header">
-        <h2 class="section-title">视频专题</h2>
+        <h2 class="section-title" :style="sectionTitleStyle">视频专题</h2>
         <div class="section-actions">
           <button class="btn-prev" @click="prevVideo()">&lt;</button>
           <button class="btn-next" @click="nextVideo()">&gt;</button>
@@ -50,7 +50,7 @@
       <!-- 新闻速递部分 -->
       <div id="news-section">
         <div class="section-header mt-5">
-          <h2 class="section-title">新闻速递</h2>
+          <h2 class="section-title" :style="sectionTitleStyle">新闻速递</h2>
           <button class="btn-more-news">更多新闻</button>
         </div>
 
@@ -102,6 +102,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import climbingSvg from '@/assets/climbingAnimation.svg';
+const sectionTitleStyle = { '--climbing-svg': `url(${climbingSvg})` };
 
 const videoTranslate = ref(0);
 const videoCardWidth = 320; // 视频卡片宽度 + 间距
@@ -230,14 +232,14 @@ onUnmounted(() => {
 
 .section-title::before {
   left: 0;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
 }
 
 .section-title::after {
   right: 0;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
   transform: translateY(-50%) rotateY(180deg);

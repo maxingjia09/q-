@@ -1,8 +1,13 @@
+<script setup>
+import climbingSvg from '@/assets/climbingAnimation.svg';
+const sectionTitleStyle = { '--climbing-svg': `url(${climbingSvg})` };
+</script>
+
 <template>
   <section id="courses" class="course-section">
     <div class="container">
       <div class="section-header">
-        <h2 class="section-title">课程体系</h2>
+        <h2 class="section-title" :style="sectionTitleStyle">课程体系</h2>
         <div class="section-divider"></div>
       </div>
 
@@ -60,7 +65,7 @@
 </template>
 
 <style scoped>
-.course-section {
+.course-section { 
   padding: 5rem 0;
   background-color: transparent;
   color: #ffffff;
@@ -107,14 +112,14 @@
 
 .section-title::before {
   left: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
 }
 
 .section-title::after {
   right: -1.5rem;
-  background-image: url('@/assets/climbingAnimation.svg');
+  background-image: var(--climbing-svg);
   background-size: contain;
   background-repeat: no-repeat;
   transform: translateY(-50%) rotateY(180deg);
@@ -289,4 +294,4 @@
     height: 200px;
   }
 }
-</style>
+</style>/* TEST_MARKER_12345 */

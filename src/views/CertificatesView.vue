@@ -11,7 +11,7 @@
     <div class="container">
       <div class="certificate-content">
         <div class="certificate-image">
-          <img src="https://images.unsplash.com/photo-1589330694653-1a6fcda5d9a5?w=800&h=1000&fit=crop" alt="教练证书" class="certificate-img">
+          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=1000&fit=crop" alt="教练证书" class="certificate-img">
         </div>
 
         <div class="certificate-details">
@@ -25,7 +25,7 @@
               <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=100&h=100&fit=crop" alt="认证标志1" class="badge-img">
             </div>
             <div class="badge-item">
-              <img src="https://images.unsplash.com/photo-1584291527908-033f4c5e24e2?w=100&h=100&fit=crop" alt="认证标志2" class="badge-img">
+              <img src="https://images.unsplash.com/photo-1548092372-0d1bd40894a3?w=100&h=100&fit=crop" alt="认证标志2" class="badge-img">
             </div>
             <div class="badge-item">
               <img src="https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=100&h=100&fit=crop" alt="认证标志3" class="badge-img">
