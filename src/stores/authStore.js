@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
+// API基础URL
+const API_BASE_URL = 'http://localhost:8122/api';
+
 export const useAuthStore = defineStore('auth', () => {
   // 状态
   const user = ref(null);
@@ -10,37 +13,6 @@ export const useAuthStore = defineStore('auth', () => {
   const joinedCourses = ref([]); // 用户报名的课程
   const avatar = ref(localStorage.getItem('userAvatar') || null); // 用户头像
   const isAuthenticated = computed(() => !!token.value);
-
-  // 模拟用户数据 - 只保留管理员账号，普通用户需要注册
-  const defaultUsers = [
-    {
-      id: 1,
-      username: 'admin',
-      email: 'mmm@qq.com',
-      password: '20041209',
-      points: 1000,
-      isAdmin: true // 管理员标识
-    }
-  ];
-  
-  // 从localStorage获取数据，如果不存在则使用默认数据
-  let mockUsers = JSON.parse(localStorage.getItem('mockUsers')) || [...defaultUsers];
-  
-  // 移除默认的普通用户账号（ID为2）
-  mockUsers = mockUsers.filter(user => user.id !== 2);
-  
-  // 确保管理员账号始终存在且信息正确
-  const adminIndex = mockUsers.findIndex(u => u.id === 1);
-  if (adminIndex === -1) {
-    // 如果管理员账号不存在，添加到用户列表
-    mockUsers.push(defaultUsers[0]);
-  } else {
-    // 如果管理员账号存在，更新信息确保正确
-    mockUsers[adminIndex] = { ...mockUsers[adminIndex], ...defaultUsers[0] };
-  }
-  
-  // 保存到localStorage
-  localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
 
   // 从localStorage获取用户参与的活动
   const loadJoinedActivities = () => {
@@ -72,72 +44,88 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-
-  // 登录
+  // 登录 - 调用后端API
   const login = async (email, password) => {
     console.log('Login function called with email:', email);
-    console.log('Available users:', mockUsers.map(u => u.email));
     
-    // 模拟API请求
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        })
+      });
 
-    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-    console.log('User found:', !!foundUser);
-    
-    if (!foundUser) {
-      console.log('User not found or password incorrect');
-      throw new Error('邮箱或密码不正确');
+      const result = await response.json();
+      console.log('Login API response:', result);
+
+      if (result.code !== 200) {
+        throw new Error(result.message || '邮箱或密码不正确');
+      }
+
+      const userData = result.data;
+      console.log('Login successful, user details:', userData);
+      
+      // 保存用户信息和token
+      user.value = {
+        id: userData.id,
+        username: userData.username || email.split('@')[0],
+        email: userData.email,
+        userRole: userData.userRole,
+        isAdmin: userData.userRole === 'admin'
+      };
+      points.value = userData.points || 0;
+      
+      // 生成并保存token
+      const newToken = 'token-' + Date.now();
+      token.value = newToken;
+      localStorage.setItem('authToken', newToken);
+      console.log('Token set:', newToken);
+      
+      // 保存上次登录的邮箱
+      localStorage.setItem('lastLoginEmail', email);
+      console.log('Last login email saved:', email);
+      
+      console.log('isAuthenticated after login:', isAuthenticated.value);
+      return user.value;
+    } catch (error) {
+      console.error('Login API error:', error);
+      throw error;
     }
-
-    console.log('Login successful, user details:', foundUser);
-    
-    // 保存用户信息和token
-    user.value = {
-      id: foundUser.id,
-      username: foundUser.username,
-      email: foundUser.email,
-      points: foundUser.points,
-      isAdmin: foundUser.isAdmin // 保存管理员标识
-    };
-    points.value = foundUser.points;
-    
-    // 生成并保存token
-    const newToken = 'mock-token-' + Date.now();
-    token.value = newToken;
-    localStorage.setItem('authToken', newToken);
-    console.log('Token set:', newToken);
-    
-    // 保存上次登录的邮箱，用于initAuth中加载用户信息
-    localStorage.setItem('lastLoginEmail', email);
-    console.log('Last login email saved:', email);
-    
-    console.log('isAuthenticated after login:', isAuthenticated.value);
-    return user.value;
   };
 
-  // 注册
+  // 注册 - 调用后端API
   const register = async (userData) => {
-    // 模拟API请求
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Register function called with:', userData);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          password: userData.password
+        })
+      });
 
-    // 检查邮箱是否已注册
-    if (mockUsers.some(u => u.email === userData.email)) {
-      throw new Error('该邮箱已被注册');
+      const result = await response.json();
+      console.log('Register API response:', result);
+
+      if (result.code !== 200) {
+        throw new Error(result.message || '注册失败');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Register API error:', error);
+      throw error;
     }
-
-    // 创建新用户
-    const newUser = {
-      id: Date.now(),
-      username: userData.username,
-      email: userData.email,
-      password: userData.password,
-      points: 0 // 初始积分为0
-    };
-
-    mockUsers.push(newUser);
-    localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
-
-    return true;
   };
 
   // 登出
@@ -146,6 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null;
     points.value = 0;
     localStorage.removeItem('authToken');
+    localStorage.removeItem('lastLoginEmail');
   };
 
   // 充值积分
@@ -163,13 +152,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     // 更新本地积分
     points.value += amount;
-
-    // 更新mock用户数据
-    const userIndex = mockUsers.findIndex(u => u.email === user.value.email);
-    if (userIndex !== -1) {
-      mockUsers[userIndex].points = points.value;
-      localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
-    }
 
     return points.value;
   };
@@ -190,13 +172,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     // 更新本地积分
     points.value -= amount;
-
-    // 更新mock用户数据
-    const userIndex = mockUsers.findIndex(u => u.email === user.value.email);
-    if (userIndex !== -1) {
-      mockUsers[userIndex].points = points.value;
-      localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
-    }
 
     return points.value;
   };
@@ -248,16 +223,14 @@ export const useAuthStore = defineStore('auth', () => {
     const joinedCourse = {
       id: courseId,
       name: course.name,
-      category: course.category,
+      location: course.location,
       image: course.image,
-      price: course.price,
-      duration: course.duration,
       date: new Date().toLocaleDateString('zh-CN', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       }),
-      status: '学习中',
+      status: '进行中',
       formData: formData
     };
 
@@ -270,104 +243,68 @@ export const useAuthStore = defineStore('auth', () => {
     return joinedCourse;
   };
 
+  // 取消活动报名
+  const cancelActivity = (activityId) => {
+    const index = joinedActivities.value.findIndex(a => a.id === activityId);
+    if (index !== -1) {
+      joinedActivities.value.splice(index, 1);
+      saveJoinedActivities();
+      return true;
+    }
+    return false;
+  };
+
   // 初始化认证状态
   const initAuth = async () => {
-    console.log('InitAuth called');
+    console.log('initAuth called, token:', token.value);
     
-    // 检查是否有token
     const savedToken = localStorage.getItem('authToken');
-    const savedEmail = localStorage.getItem('lastLoginEmail');
+    const lastEmail = localStorage.getItem('lastLoginEmail');
     
-    console.log('Token exists:', !!savedToken);
-    console.log('User exists:', !!user.value);
-    console.log('lastLoginEmail:', savedEmail);
-    console.log('Available mock users:', mockUsers.map(u => u.email));
-    
-    // 更新token状态
-    token.value = savedToken;
-    
-    // 如果有token但没有用户信息，尝试加载用户信息
-    if (savedToken && savedEmail) {
-      console.log('Attempting to load user by email:', savedEmail);
-      const foundUser = mockUsers.find(u => u.email === savedEmail);
-      console.log('Found user:', !!foundUser);
+    if (savedToken && lastEmail) {
+      token.value = savedToken;
       
-      if (foundUser) {
-        user.value = {
-          id: foundUser.id,
-          username: foundUser.username,
-          email: foundUser.email,
-          points: foundUser.points,
-          isAdmin: foundUser.isAdmin // 保存管理员标识
-        };
-        points.value = foundUser.points;
-        console.log('User loaded successfully:', user.value);
+      // 尝试从后端获取用户信息
+      try {
+        const response = await fetch(`${API_BASE_URL}/user/detail/account/${lastEmail}`);
+        const userData = await response.json();
         
-        // 加载用户参与的活动
-        loadJoinedActivities();
-        
-        // 加载用户报名的课程
-        loadJoinedCourses();
-      } else {
-        console.log('User not found, clearing token');
-        // 如果找不到用户，清除token
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('lastLoginEmail');
-        token.value = null;
-        user.value = null;
+        if (userData) {
+          user.value = {
+            id: userData.id,
+            username: userData.userName || lastEmail.split('@')[0],
+            email: userData.userAccount,
+            userRole: userData.userRole,
+            isAdmin: userData.userRole === 'admin'
+          };
+          console.log('User info loaded from API:', user.value);
+        }
+      } catch (error) {
+        console.error('Failed to load user info:', error);
+        // 如果API调用失败，清除登录状态
+        logout();
       }
-    } else if (savedToken && !savedEmail) {
-      console.log('Token exists but no lastLoginEmail, clearing token');
-      localStorage.removeItem('authToken');
-      token.value = null;
+      
+      loadJoinedActivities();
+      loadJoinedCourses();
+    } else {
+      console.log('No saved token or email found');
     }
     
-    console.log('InitAuth completed, isAuthenticated:', isAuthenticated.value);
-    console.log('Joined activities:', joinedActivities.value.length);
+    console.log('initAuth completed, isAuthenticated:', isAuthenticated.value);
   };
 
-  // 更新用户信息
-  const updateUserProfile = async (profileData) => {
-    if (!isAuthenticated.value) {
-      throw new Error('请先登录');
-    }
-
-    // 模拟API请求
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // 更新本地用户信息
-    user.value = {
-      ...user.value,
-      ...profileData
-    };
-
-    // 更新mock用户数据
-    const userIndex = mockUsers.findIndex(u => u.email === user.value.email);
-    if (userIndex !== -1) {
-      mockUsers[userIndex] = {
-        ...mockUsers[userIndex],
-        ...profileData
-      };
-      localStorage.setItem('mockUsers', JSON.stringify(mockUsers));
-    }
-
-    return user.value;
+  // 更新头像
+  const updateAvatar = (newAvatar) => {
+    avatar.value = newAvatar;
+    localStorage.setItem('userAvatar', newAvatar);
   };
 
-  // 更新用户头像
-  const updateAvatar = async (avatarData) => {
-    if (!isAuthenticated.value) {
-      throw new Error('请先登录');
+  // 更新用户名
+  const updateUsername = (newUsername) => {
+    if (user.value) {
+      user.value.username = newUsername;
     }
-
-    // 模拟API请求
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // 保存头像数据
-    avatar.value = avatarData;
-    localStorage.setItem('userAvatar', avatarData);
-
-    return avatarData;
   };
 
   return {
@@ -383,10 +320,15 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     rechargePoints,
     deductPoints,
-    initAuth,
     joinActivity,
     joinCourse,
-    updateUserProfile,
-    updateAvatar
+    cancelActivity,
+    initAuth,
+    updateAvatar,
+    updateUsername,
+    loadJoinedActivities,
+    saveJoinedActivities,
+    loadJoinedCourses,
+    saveJoinedCourses
   };
 });
