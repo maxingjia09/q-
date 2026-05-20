@@ -441,7 +441,16 @@ onMounted(() => {
   if (course.value) {
     window.scrollTo(0, 0);
   }
-  
+
+  // 自动填充个人资料
+  if (authStore.isAuthenticated) {
+    const info = authStore.personalInfo;
+    formData.value.name = info.name || '';
+    formData.value.phone = info.phone || '';
+    formData.value.email = info.email || '';
+    formData.value.experience = info.experience || '';
+  }
+
   refreshInterval = setInterval(async () => {
     await refreshUserData();
   }, 30000);

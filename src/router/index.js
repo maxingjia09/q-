@@ -46,7 +46,6 @@ const router = createRouter({
       path: '/personal',
       name: 'personal',
       component: PersonalView,
-      meta: { requiresAuth: true }
     },
     {
       path: '/admin/login',

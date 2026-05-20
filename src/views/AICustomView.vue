@@ -1,6 +1,9 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+import { useAuthStore } from '../stores/authStore';
+
+const authStore = useAuthStore();
 
 const userInfo = ref({
   name: '',
@@ -14,6 +17,20 @@ const userInfo = ref({
   duration: '',
   healthConditions: '',
   fitnessLevel: ''
+});
+
+onMounted(() => {
+  if (authStore.isAuthenticated) {
+    const info = authStore.personalInfo;
+    userInfo.value.name = info.name || '';
+    userInfo.value.age = info.age || '';
+    userInfo.value.gender = info.gender || '';
+    userInfo.value.height = info.height || '';
+    userInfo.value.weight = info.weight || '';
+    userInfo.value.experience = info.experience || '';
+    userInfo.value.healthConditions = info.healthConditions || '';
+    userInfo.value.fitnessLevel = info.fitnessLevel || '';
+  }
 });
 
 const isGenerating = ref(false);

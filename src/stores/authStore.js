@@ -14,6 +14,40 @@ export const useAuthStore = defineStore('auth', () => {
   const avatar = ref(localStorage.getItem('userAvatar') || null); // 用户头像
   const isAuthenticated = computed(() => !!token.value);
 
+  // 用户个人资料（用于自动填充）
+  const personalInfo = ref(loadPersonalInfo());
+
+  function loadPersonalInfo() {
+    try {
+      const saved = localStorage.getItem('userPersonalInfo');
+      return saved ? JSON.parse(saved) : {
+        name: '',
+        phone: '',
+        email: '',
+        idCard: '',
+        gender: '',
+        age: '',
+        emergencyContact: '',
+        emergencyPhone: '',
+        experience: '',
+        healthConditions: '',
+        fitnessLevel: '',
+        height: '',
+        weight: ''
+      };
+    } catch {
+      return {
+        name: '', phone: '', email: '', idCard: '', gender: '', age: '',
+        emergencyContact: '', emergencyPhone: '', experience: '',
+        healthConditions: '', fitnessLevel: '', height: '', weight: ''
+      };
+    }
+  }
+
+  function savePersonalInfo() {
+    localStorage.setItem('userPersonalInfo', JSON.stringify(personalInfo.value));
+  }
+
   // 从localStorage获取用户参与的活动
   const loadJoinedActivities = () => {
     if (user.value) {
@@ -307,6 +341,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
+  // 更新用户完整资料
+  const updateUserProfile = (profileData) => {
+    if (user.value) {
+      if (profileData.username) user.value.username = profileData.username;
+      if (profileData.email) user.value.email = profileData.email;
+      if (profileData.phone) user.value.phone = profileData.phone;
+    }
+  };
+
+  // 更新个人资料（用于自动填充）
+  const updatePersonalInfo = (info) => {
+    personalInfo.value = { ...personalInfo.value, ...info };
+    savePersonalInfo();
+  };
+
   return {
     user,
     token,
@@ -314,6 +363,7 @@ export const useAuthStore = defineStore('auth', () => {
     joinedActivities,
     joinedCourses,
     avatar,
+    personalInfo,
     isAuthenticated,
     login,
     register,
@@ -326,6 +376,10 @@ export const useAuthStore = defineStore('auth', () => {
     initAuth,
     updateAvatar,
     updateUsername,
+    updateUserProfile,
+    updatePersonalInfo,
+    loadPersonalInfo,
+    savePersonalInfo,
     loadJoinedActivities,
     saveJoinedActivities,
     loadJoinedCourses,

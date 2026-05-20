@@ -321,12 +321,13 @@ const isProcessingPayment = ref(false); // 支付处理状态
 const showJoinModal = (activity) => {
   selectedActivity.value = activity;
   showModal.value = true;
-  // 重置表单
+  // 自动填充个人资料
+  const info = authStore.personalInfo;
   formData.value = {
-    name: '',
-    phone: '',
-    email: '',
-    experience: '',
+    name: info.name || '',
+    phone: info.phone || '',
+    email: info.email || '',
+    experience: info.experience || '',
     club: ''
   };
 };

@@ -40,6 +40,7 @@
           <a href="#" class="forgot-password">忘记密码？</a>
         </div>
 
+        <div v-if="errors.general" class="error-message general-error">{{ errors.general }}</div>
         <button type="submit" class="btn-submit" :disabled="isLoading">
           <span v-if="!isLoading">登录</span>
           <span v-if="isLoading">登录中...</span>
@@ -62,12 +63,13 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { defineEmits } from 'vue';
 import ClimbingAnimation from '../components/ClimbingAnimation.vue';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const emit = defineEmits(['switch-to-register', 'login-success']);
 
@@ -103,6 +105,9 @@ const validateForm = () => {
 
 const handleSwitchToRegister = () => {
   emit('switch-to-register');
+  if (route.path === '/login') {
+    router.push('/register');
+  }
 };
 
 const handleSubmit = async () => {
@@ -115,12 +120,8 @@ const handleSubmit = async () => {
       console.log('Calling authStore.login');
       const userData = await authStore.login(form.email, form.password);
       console.log('Login successful, user data:', userData);
-      
-      // 登录成功后先确保用户信息已初始化
-      await authStore.initAuth();
-      console.log('After initAuth, isAuthenticated:', authStore.isAuthenticated);
-      
-      // 显示攀登动画
+
+      // 登录成功后显示攀登动画
       showClimbingAnimation.value = true;
     } catch (error) {
       console.error('Login failed:', error.message);
@@ -133,17 +134,13 @@ const handleSubmit = async () => {
   const handleAnimationEnd = () => {
     // 动画结束后触发事件，让父组件处理跳转
     emit('login-success');
-    
-    // 确保直接访问登录页时也能跳转到个人中心
-    // 这个逻辑不会影响通过模态框登录的情况，因为父组件会处理跳转
-    setTimeout(() => {
-      // 只有在直接访问登录页时才执行跳转
-      // 避免在模态框模式下双重跳转
-      if (window.location.pathname === '/login') {
-        console.log('Direct login page, performing full page refresh to /personal');
-        window.location.href = '/personal';
-      }
-    }, 100);
+
+    // 确保直接访问登录页时也能正确跳转
+    if (route.path === '/login') {
+      const redirectPath = route.query.redirect || '/personal';
+      console.log('Direct login page, navigating to:', redirectPath);
+      router.push(redirectPath);
+    }
   };
 </script>
 
@@ -215,6 +212,16 @@ const handleSubmit = async () => {
   color: #e74c3c;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+}
+
+.general-error {
+  background: #ffeaea;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
 }
 
 .form-options {

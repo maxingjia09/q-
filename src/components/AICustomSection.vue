@@ -246,6 +246,7 @@
 <script>
 // 导入活动数据
 import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+import { useAuthStore } from '../stores/authStore';
 
 export default {
   name: 'AICustomSection',
@@ -271,6 +272,21 @@ export default {
       hasRecommendations: false,
       // 推荐路线列表
       recommendedRoutes: []
+    }
+  },
+  mounted() {
+    // 自动填充个人资料
+    const authStore = useAuthStore();
+    if (authStore.isAuthenticated) {
+      const info = authStore.personalInfo;
+      this.userInfo.name = info.name || '';
+      this.userInfo.age = info.age || '';
+      this.userInfo.gender = info.gender || '';
+      this.userInfo.height = info.height || '';
+      this.userInfo.weight = info.weight || '';
+      this.userInfo.experience = info.experience || '';
+      this.userInfo.healthConditions = info.healthConditions || '';
+      this.userInfo.fitnessLevel = info.fitnessLevel || '';
     }
   },
   computed: {

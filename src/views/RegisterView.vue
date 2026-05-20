@@ -67,6 +67,7 @@
           <div v-if="errors.agreeTerms" class="error-message">{{ errors.agreeTerms }}</div>
         </div>
 
+        <div v-if="errors.general" class="error-message general-error">{{ errors.general }}</div>
         <button type="submit" class="btn-submit" :disabled="isLoading">
           <span v-if="!isLoading">注册</span>
           <span v-if="isLoading">注册中...</span>
@@ -82,11 +83,12 @@
 
 <script setup>
 import { ref, reactive, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import { defineEmits } from 'vue';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const emit = defineEmits(['switch-to-login', 'register-success']);
 
@@ -176,8 +178,10 @@ const validateForm = () => {
 };
 
 const handleSwitchToLogin = () => {
-  // 直接导航到登录页面，而不仅仅是发出事件
-  router.push('/login');
+  emit('switch-to-login');
+  if (route.path === '/register') {
+    router.push('/login');
+  }
 };
 
 const handleSubmit = async () => {
@@ -193,6 +197,10 @@ const handleSubmit = async () => {
     });
     // 注册成功后发出事件通知父组件
     emit('register-success');
+    // 直接在独立页面访问注册页时跳转到登录页
+    if (route.path === '/register') {
+      router.push('/login');
+    }
   } catch (error) {
     errors.general = error.message || '注册失败，请稍后重试';
   } finally {
@@ -269,6 +277,16 @@ const handleSubmit = async () => {
   color: #e74c3c;
   font-size: 0.875rem;
   margin-top: 0.5rem;
+}
+
+.general-error {
+  background: #ffeaea;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
 }
 
 .terms-agreement {

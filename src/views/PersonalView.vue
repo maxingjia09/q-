@@ -1,7 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import { useRouter } from 'vue-router';
+import LoginView from './LoginView.vue';
+import RegisterView from './RegisterView.vue';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -13,7 +15,19 @@ const isAuthenticated = computed(() => authStore.isAuthenticated);
 const joinedActivities = computed(() => authStore.joinedActivities);
 const joinedCourses = computed(() => authStore.joinedCourses);
 
+// 使用本地ref控制认证视图的显示，避免登录成功后isAuthenticated变化导致动画被中断
+const showAuthView = ref(!authStore.isAuthenticated);
+
+// 监听认证状态：用户登出或token失效时显示认证视图
+watch(() => authStore.isAuthenticated, (newVal) => {
+  if (!newVal) {
+    showAuthView.value = true;
+  }
+});
+
 const activeTab = ref('profile');
+const authTab = ref('login');
+const registerSuccessMessage = ref('');
 const rechargeAmount = ref('');
 const showPaymentModal = ref(false);
 const selectedPaymentMethod = ref('');
@@ -24,6 +38,87 @@ const editForm = ref({
   email: '',
   phone: ''
 });
+
+// 个人资料表单（用于自动填充）
+const personalInfo = computed(() => authStore.personalInfo);
+const personalInfoForm = ref({
+  name: '',
+  phone: '',
+  email: '',
+  idCard: '',
+  gender: '',
+  age: '',
+  emergencyContact: '',
+  emergencyPhone: '',
+  experience: '',
+  healthConditions: '',
+  fitnessLevel: '',
+  height: '',
+  weight: ''
+});
+const isEditingPersonalInfo = ref(false);
+
+// 初始化个人资料表单
+const initPersonalInfoForm = () => {
+  personalInfoForm.value = { ...authStore.personalInfo };
+  // 自动填充邮箱
+  if (!personalInfoForm.value.email && user.value?.email) {
+    personalInfoForm.value.email = user.value.email;
+  }
+};
+
+// 编辑个人资料
+const startEditingPersonalInfo = () => {
+  initPersonalInfoForm();
+  isEditingPersonalInfo.value = true;
+};
+
+// 取消编辑个人资料
+const cancelEditingPersonalInfo = () => {
+  isEditingPersonalInfo.value = false;
+};
+
+// 保存个人资料
+const savePersonalInfo = () => {
+  // 基础验证
+  if (personalInfoForm.value.phone && !/^1[3-9]\d{9}$/.test(personalInfoForm.value.phone)) {
+    alert('请输入正确的手机号');
+    return;
+  }
+  if (personalInfoForm.value.idCard && !/^\d{17}[\dXx]$/.test(personalInfoForm.value.idCard)) {
+    alert('请输入正确的身份证号');
+    return;
+  }
+  if (personalInfoForm.value.emergencyPhone && !/^1[3-9]\d{9}$/.test(personalInfoForm.value.emergencyPhone)) {
+    alert('请输入正确的紧急联系人电话');
+    return;
+  }
+
+  authStore.updatePersonalInfo(personalInfoForm.value);
+  alert('个人资料保存成功！');
+  isEditingPersonalInfo.value = false;
+};
+
+// 登录/注册相关处理
+const handleLoginSuccess = () => {
+  // 登录成功，动画播放完毕，切换到个人中心视图
+  showAuthView.value = false;
+  refreshUserData();
+};
+
+const handleRegisterSuccess = () => {
+  registerSuccessMessage.value = '注册成功！请使用您的账号登录';
+  authTab.value = 'login';
+};
+
+const handleSwitchToRegister = () => {
+  authTab.value = 'register';
+  registerSuccessMessage.value = '';
+};
+
+const handleSwitchToLogin = () => {
+  authTab.value = 'login';
+};
 
 const quickAmounts = [100, 200, 500, 1000];
 
@@ -140,7 +235,29 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="personal-page">
+  <!-- 未登录状态：显示登录/注册页面 -->
+  <div v-if="showAuthView" class="personal-auth-page">
+    <div class="auth-tabs">
+      <button :class="['auth-tab', { active: authTab === 'login' }]" @click="authTab = 'login'">登录</button>
+      <button :class="['auth-tab', { active: authTab === 'register' }]" @click="authTab = 'register'">注册</button>
+    </div>
+    <div v-if="registerSuccessMessage" class="register-success-msg">{{ registerSuccessMessage }}</div>
+    <div class="auth-form-wrapper">
+      <LoginView
+        v-if="authTab === 'login'"
+        @switch-to-register="handleSwitchToRegister"
+        @login-success="handleLoginSuccess"
+      />
+      <RegisterView
+        v-if="authTab === 'register'"
+        @switch-to-login="handleSwitchToLogin"
+        @register-success="handleRegisterSuccess"
+      />
+    </div>
+  </div>
+
+  <!-- 已登录状态：显示个人中心 -->
+  <div v-else class="personal-page">
     <div class="page-container">
       <aside class="sidebar">
         <div class="sidebar-header">
@@ -154,6 +271,7 @@ onUnmounted(() => {
           <div 
             v-for="tab in [
               { id: 'profile', label: '个人信息', icon: '👤' },
+              { id: 'personalInfo', label: '个人资料', icon: '📋' },
               { id: 'activities', label: '参与活动', icon: '🏃' },
               { id: 'recharge', label: '账户充值', icon: '💰' }
             ]"
@@ -269,6 +387,144 @@ onUnmounted(() => {
               </div>
             </div>
 
+            <!-- 个人资料板块（用于报名时自动填充） -->
+            <div v-if="activeTab === 'personalInfo'" class="personal-info-section">
+              <div class="section-header">
+                <h2>个人资料</h2>
+                <p class="section-desc">填写以下资料后，报名活动或申请认证时将自动填充</p>
+                <button v-if="!isEditingPersonalInfo" class="edit-btn" @click="startEditingPersonalInfo">编辑资料</button>
+                <div v-else class="edit-actions">
+                  <button class="cancel-btn" @click="cancelEditingPersonalInfo">取消</button>
+                  <button class="save-btn" @click="savePersonalInfo">保存</button>
+                </div>
+              </div>
+
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="card-icon">👤</div>
+                  <div class="card-content">
+                    <label>姓名 *</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.name || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.name" class="edit-input" placeholder="请输入真实姓名">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📱</div>
+                  <div class="card-content">
+                    <label>手机号 *</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.phone || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.phone" type="tel" class="edit-input" placeholder="请输入手机号">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📧</div>
+                  <div class="card-content">
+                    <label>邮箱</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.email || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.email" type="email" class="edit-input" placeholder="请输入邮箱">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🪪</div>
+                  <div class="card-content">
+                    <label>身份证号</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.idCard || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.idCard" class="edit-input" placeholder="请输入身份证号">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🚻</div>
+                  <div class="card-content">
+                    <label>性别</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.gender || '未填写' }}</div>
+                    <select v-else v-model="personalInfoForm.gender" class="edit-input">
+                      <option value="">请选择</option>
+                      <option value="男">男</option>
+                      <option value="女">女</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🎂</div>
+                  <div class="card-content">
+                    <label>年龄</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.age || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.age" type="number" min="1" max="120" class="edit-input" placeholder="请输入年龄">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📏</div>
+                  <div class="card-content">
+                    <label>身高 (cm)</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.height || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.height" type="number" min="50" max="250" class="edit-input" placeholder="请输入身高">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">⚖️</div>
+                  <div class="card-content">
+                    <label>体重 (kg)</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.weight || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.weight" type="number" min="20" max="300" class="edit-input" placeholder="请输入体重">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🚑</div>
+                  <div class="card-content">
+                    <label>紧急联系人</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.emergencyContact || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.emergencyContact" class="edit-input" placeholder="请输入紧急联系人姓名">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">📞</div>
+                  <div class="card-content">
+                    <label>紧急联系人电话</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.emergencyPhone || '未填写' }}</div>
+                    <input v-else v-model="personalInfoForm.emergencyPhone" type="tel" class="edit-input" placeholder="请输入紧急联系人电话">
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="card-icon">🏋️</div>
+                  <div class="card-content">
+                    <label>体能水平</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.fitnessLevel || '未填写' }}</div>
+                    <select v-else v-model="personalInfoForm.fitnessLevel" class="edit-input">
+                      <option value="">请选择</option>
+                      <option value="初级">初级</option>
+                      <option value="中级">中级</option>
+                      <option value="高级">高级</option>
+                      <option value="专业">专业</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 经验与健康状况（全宽卡片） -->
+              <div class="info-grid full-width-section" style="grid-template-columns: 1fr 1fr;">
+                <div class="info-card tall-card">
+                  <div class="card-icon">📝</div>
+                  <div class="card-content">
+                    <label>户外经验</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.experience || '未填写' }}</div>
+                    <textarea v-else v-model="personalInfoForm.experience" class="edit-input edit-textarea" placeholder="请描述您的户外运动经验，如攀岩、徒步、登山等经历" rows="4"></textarea>
+                  </div>
+                </div>
+                <div class="info-card tall-card">
+                  <div class="card-icon">❤️</div>
+                  <div class="card-content">
+                    <label>健康状况</label>
+                    <div v-if="!isEditingPersonalInfo" class="value">{{ personalInfo.healthConditions || '未填写' }}</div>
+                    <textarea v-else v-model="personalInfoForm.healthConditions" class="edit-input edit-textarea" placeholder="请说明您的健康状况，如有特殊疾病或过敏史请注明（选填）" rows="4"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="auto-fill-notice">
+                💡 保存以上资料后，在报名活动、申请课程或认证时，表单将自动填充您的个人信息。
+              </div>
+            </div>
+
             <div v-if="activeTab === 'activities'" class="activities-section">
               <h2>参与的活动</h2>
               <div v-if="joinedActivities.length === 0 && joinedCourses.length === 0" class="empty-state">
@@ -368,6 +624,72 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* 未登录时的认证页面 */
+.personal-auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-top: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.5rem;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-tab {
+  padding: 12px 40px;
+  border: none;
+  background: white;
+  font-size: 16px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.auth-tab:hover:not(.active) {
+  color: #667eea;
+  background: #f8f9fa;
+}
+
+.register-success-msg {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 12px 24px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.auth-form-wrapper {
+  width: 100%;
+  max-width: 480px;
+}
+
+/* 隐藏嵌入的LoginView/RegisterView的容器背景，因为外层已有背景 */
+.auth-form-wrapper :deep(.auth-container) {
+  min-height: auto;
+  background: transparent;
+  padding: 0;
+}
+
 .personal-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1054,6 +1376,55 @@ onUnmounted(() => {
 @media (max-width: 1400px) {
   .info-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 个人资料板块 */
+.personal-info-section .section-desc {
+  flex: 1;
+  margin: 0 20px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.personal-info-section .section-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tall-card {
+  min-height: 160px;
+  align-items: flex-start;
+}
+
+.tall-card .card-content {
+  flex: 1;
+}
+
+.edit-textarea {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.full-width-section {
+  margin-top: 20px;
+}
+
+.auto-fill-notice {
+  margin-top: 25px;
+  padding: 16px 20px;
+  background: rgba(102, 126, 234, 0.08);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  border-radius: 10px;
+  color: #667eea;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .full-width-section {
+    grid-template-columns: 1fr !important;
   }
 }
 </style>

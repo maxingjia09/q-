@@ -44,19 +44,12 @@ const closeAuthModal = () => {
 const handleLoginSuccess = async () => {
   console.log('Login success handler triggered in NavBar');
   closeAuthModal();
-  
-  try {
-    await authStore.initAuth();
-    console.log('After initAuth in NavBar, isAuthenticated:', authStore.isAuthenticated);
-    
-    if (authStore.isAuthenticated) {
-      console.log('Redirecting with page refresh to personal center');
-      window.location.href = '/personal';
-    } else {
-      console.error('Authentication failed after login success event');
-    }
-  } catch (error) {
-    console.error('Error initializing auth after login:', error);
+
+  if (authStore.isAuthenticated) {
+    console.log('Redirecting to personal center');
+    window.location.href = '/personal';
+  } else {
+    console.error('Authentication failed after login success event');
   }
 };
 
