@@ -9,7 +9,6 @@ const quickLinks = [
   { title: '探索俱乐部', icon: '⛰️', path: '/clubs', desc: '选择专业户外俱乐部' },
   { title: '课程体系', icon: '📚', path: '/courses', desc: '专业户外技能培训' },
   { title: '权威认证', icon: '🏆', path: '/certificates', desc: '国际认可教练资质' },
-  { title: '视频新闻', icon: '📺', path: '/video-news', desc: '精彩视频与最新资讯' },
   { title: 'AI定制', icon: '🤖', path: '/ai-custom', desc: '个性化路线推荐' }
 ];
 

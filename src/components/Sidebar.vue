@@ -35,16 +35,6 @@ const menuItems = [
     route: '#certificates'
   },
   {
-    title: '视频专题',
-    icon: '🎬',
-    route: '#video-news-section'
-  },
-  {
-    title: '新闻速递',
-    icon: '📰',
-    route: '#news-section'
-  },
-  {
     title: 'AI定制路线',
     icon: '🤖',
     route: '#ai-custom-section'

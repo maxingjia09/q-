@@ -58,35 +58,8 @@
           </button>
         </div>
 
-        <!-- 攀岩活动 -->
-        <div v-if="activeClimbingTab === 'rock'" class="climbing-content">
-          <div class="rock-climbing-spots">
-            <h3 class="category-title">攀岩场地与活动</h3>
-            <div class="route-grid">
-             <div v-for="spot in rockClimbingSpots" :key="spot.id" class="route-card">
-               <div class="route-image">
-                 <img :src="spot.image" :alt="spot.name">
-               </div>
-               <div class="route-content">
-                 <h4 class="route-name">{{ spot.name }}</h4>
-                 <p class="route-location">{{ spot.location }}</p>
-                 <p class="route-description">{{ spot.description.substring(0, 100) }}...</p>
-                 <div class="route-details">
-                   <span class="detail-item">{{ spot.difficulty }}</span>
-                   <span class="detail-item">{{ spot.height }}</span>
-                 </div>
-                 <div class="activity-buttons">
-                   <button class="detail-btn" @click="showActivityDetail(spot)">了解详情</button>
-                   <button class="btn-join" @click="showJoinModal(spot)">立即报名</button>
-                 </div>
-               </div>
-             </div>
-            </div>
-          </div>
-        </div>
-
         <!-- 雪山攀登活动 -->
-        <div v-else-if="activeClimbingTab === 'mountain'" class="climbing-content">
+        <div v-if="activeClimbingTab === 'mountain'" class="climbing-content">
           <div class="mountain-expeditions">
             <h3 class="category-title">雪山攀登探险</h3>
             <div class="route-grid">
@@ -269,7 +242,7 @@
 import { ref, computed } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 // 导入活动数据
-import { hikingRoutes, rockClimbingSpots, mountainExpeditions } from '../data/activityData.js';
+import { hikingRoutes, mountainExpeditions } from '../data/activityData.js';
 // 导入俱乐部数据
 import { clubs } from '../data/clubData.js';
 
@@ -283,9 +256,8 @@ const tabs = [
 ];
 
 // 攀登活动子类型切换
-const activeClimbingTab = ref('rock');
+const activeClimbingTab = ref('mountain');
 const climbingTabs = [
-  { id: 'rock', name: '攀岩' },
   { id: 'mountain', name: '雪山' }
 ];
 

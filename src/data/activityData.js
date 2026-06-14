@@ -1,3 +1,8 @@
+import siguniangImage from '@/assets/ggxs.PNG';
+import yuzhuImage from '@/assets/1.PNG';
+import muztaghImage from '@/assets/sd.PNG';
+import gangshikaImage from '@/assets/xn.PNG';
+
 // 活动数据文件
 // 使用可靠的Unsplash图片链接
 // 徒步活动图片
@@ -11,10 +16,10 @@ const baiheImage = 'https://images.unsplash.com/photo-1564769662533-4f00a87b4056
 const shiguImage = 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop';
 const mashanImage = 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=800&h=600&fit=crop';
 // 雪山攀登图片
-const peak3Image = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&h=600&fit=crop';
-const peak4Image = 'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=800&h=600&fit=crop';
-const peak5Image = 'https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?w=800&h=600&fit=crop';
-const peak2Image = 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&h=600&fit=crop';
+const peak3Image = siguniangImage;
+const peak4Image = yuzhuImage;
+const peak5Image = muztaghImage;
+const peak2Image = gangshikaImage;
 
 // 徒步路线数据
 export const hikingRoutes = [

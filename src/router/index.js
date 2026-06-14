@@ -13,7 +13,6 @@ import ActivitiesView from '../views/ActivitiesView.vue'
 import ClubsView from '../views/ClubsView.vue'
 import CoursesView from '../views/CoursesView.vue'
 import CertificatesView from '../views/CertificatesView.vue'
-import VideoNewsView from '../views/VideoNewsView.vue'
 import AICustomView from '../views/AICustomView.vue'
 import { useAuthStore } from '../stores/authStore';
 
@@ -95,11 +94,6 @@ const router = createRouter({
       path: '/certificates',
       name: 'certificates',
       component: CertificatesView
-    },
-    {
-      path: '/video-news',
-      name: 'video-news',
-      component: VideoNewsView
     },
     {
       path: '/ai-custom',

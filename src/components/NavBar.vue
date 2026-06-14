@@ -106,11 +106,6 @@ const menuItems = [
     route: '/certificates'
   },
   {
-    title: '视频新闻',
-    icon: '📺',
-    route: '/video-news'
-  },
-  {
     title: 'AI定制路线',
     icon: '🤖',
     route: '/ai-custom'
