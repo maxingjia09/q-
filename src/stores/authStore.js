@@ -14,38 +14,42 @@ export const useAuthStore = defineStore('auth', () => {
   const avatar = ref(localStorage.getItem('userAvatar') || null); // 用户头像
   const isAuthenticated = computed(() => !!token.value);
 
-  // 用户个人资料（用于自动填充）
-  const personalInfo = ref(loadPersonalInfo());
+  // 用户个人资料（用于自动填充，按用户隔离）
+  const emptyPersonalInfo = () => ({
+    name: '', phone: '', email: '', idCard: '', gender: '', age: '',
+    emergencyContact: '', emergencyPhone: '', experience: '',
+    healthConditions: '', fitnessLevel: '', height: '', weight: ''
+  });
+
+  const personalInfo = ref(emptyPersonalInfo());
+
+  function getPersonalInfoKey() {
+    return user.value ? `user_${user.value.id}_personalInfo` : null;
+  }
 
   function loadPersonalInfo() {
+    // 清理旧的通用资料（一次性迁移）
+    if (localStorage.getItem('userPersonalInfo')) {
+      localStorage.removeItem('userPersonalInfo');
+    }
+    const key = getPersonalInfoKey();
+    if (!key) {
+      personalInfo.value = emptyPersonalInfo();
+      return;
+    }
     try {
-      const saved = localStorage.getItem('userPersonalInfo');
-      return saved ? JSON.parse(saved) : {
-        name: '',
-        phone: '',
-        email: '',
-        idCard: '',
-        gender: '',
-        age: '',
-        emergencyContact: '',
-        emergencyPhone: '',
-        experience: '',
-        healthConditions: '',
-        fitnessLevel: '',
-        height: '',
-        weight: ''
-      };
+      const saved = localStorage.getItem(key);
+      personalInfo.value = saved ? JSON.parse(saved) : emptyPersonalInfo();
     } catch {
-      return {
-        name: '', phone: '', email: '', idCard: '', gender: '', age: '',
-        emergencyContact: '', emergencyPhone: '', experience: '',
-        healthConditions: '', fitnessLevel: '', height: '', weight: ''
-      };
+      personalInfo.value = emptyPersonalInfo();
     }
   }
 
   function savePersonalInfo() {
-    localStorage.setItem('userPersonalInfo', JSON.stringify(personalInfo.value));
+    const key = getPersonalInfoKey();
+    if (key) {
+      localStorage.setItem(key, JSON.stringify(personalInfo.value));
+    }
   }
 
   // 从localStorage获取用户参与的活动
@@ -110,21 +114,26 @@ export const useAuthStore = defineStore('auth', () => {
         username: userData.username || email.split('@')[0],
         email: userData.email,
         userRole: userData.userRole,
-        isAdmin: userData.userRole === 'admin'
+        isAdmin: userData.userRole === 'super_admin' || userData.userRole === 'club_admin',
+        isSuperAdmin: userData.userRole === 'super_admin',
+        isClubAdmin: userData.userRole === 'club_admin',
+        clubId: userData.clubId || null
       };
       points.value = userData.points || 0;
-      
-      // 生成并保存token
+
+      // 生成并保存token和userId
       const newToken = 'token-' + Date.now();
       token.value = newToken;
       localStorage.setItem('authToken', newToken);
+      localStorage.setItem('userId', userData.id);
       console.log('Token set:', newToken);
-      
+
       // 保存上次登录的邮箱
       localStorage.setItem('lastLoginEmail', email);
       console.log('Last login email saved:', email);
       
       console.log('isAuthenticated after login:', isAuthenticated.value);
+      loadPersonalInfo(); // 按当前用户加载个人资料
       return user.value;
     } catch (error) {
       console.error('Login API error:', error);
@@ -309,8 +318,13 @@ export const useAuthStore = defineStore('auth', () => {
             username: userData.userName || lastEmail.split('@')[0],
             email: userData.userAccount,
             userRole: userData.userRole,
-            isAdmin: userData.userRole === 'admin'
+            isAdmin: userData.userRole === 'super_admin' || userData.userRole === 'club_admin',
+            isSuperAdmin: userData.userRole === 'super_admin',
+            isClubAdmin: userData.userRole === 'club_admin',
+            clubId: userData.clubId || null
           };
+          localStorage.setItem('userId', userData.id);
+          loadPersonalInfo(); // 按当前用户加载个人资料
           console.log('User info loaded from API:', user.value);
         }
       } catch (error) {

@@ -10,7 +10,7 @@
         </div>
 
         <nav class="sidebar-nav">
-          <div 
+          <div
             v-for="tab in [
               { id: 'overview', label: '课程概览', icon: '📖' },
               { id: 'details', label: '课程详情', icon: '📋' },
@@ -33,17 +33,34 @@
 
       <main class="main-content">
         <div class="content-wrapper">
-          <div v-if="course" class="course-detail">
+
+          <!-- Loading state -->
+          <div v-if="loading" class="loading-state">
+            <div class="spinner"></div>
+            <p>正在加载课程信息...</p>
+          </div>
+
+          <!-- Error state -->
+          <div v-else-if="error" class="error-state">
+            <div class="error-icon">⚠️</div>
+            <h2>加载失败</h2>
+            <p>{{ error }}</p>
+            <button class="btn-back" @click="fetchCourse">重新加载</button>
+            <button class="btn-back" style="margin-left: 10px;" @click="goBack">返回首页</button>
+          </div>
+
+          <!-- Course content -->
+          <div v-else-if="course" class="course-detail">
             <header class="course-header">
               <div class="course-banner">
-                <img :src="course.image" :alt="course.name">
+                <img :src="resolveImageUrl(course.image)" :alt="course.name">
               </div>
               <div class="course-title-section">
                 <h1 class="course-title">{{ course.name }}</h1>
                 <div class="course-meta">
                   <span class="meta-item">
                     <i class="meta-icon">📊</i>
-                    难度：{{ course.difficulty }}
+                    难度：{{ difficultyLabel }}
                   </span>
                   <span class="meta-item">
                     <i class="meta-icon">⏱️</i>
@@ -53,14 +70,22 @@
                     <i class="meta-icon">👥</i>
                     适合：{{ course.targetAudience }}
                   </span>
+                  <span class="meta-item" v-if="course.price">
+                    <i class="meta-icon">💰</i>
+                    价格：¥{{ course.price }}
+                  </span>
                 </div>
+                <button class="btn-join-now" @click="openJoinModal">立即报名</button>
               </div>
             </header>
 
             <div class="tab-content">
               <div v-if="activeTab === 'overview'" class="overview-section">
                 <h2>课程介绍</h2>
-                <div class="course-description">
+                <div v-if="course.shortDescription" class="course-short-desc">
+                  <p class="short-description">{{ course.shortDescription }}</p>
+                </div>
+                <div class="course-description" v-if="course.detailedDescription">
                   <p v-for="(paragraph, index) in descriptionParagraphs" :key="index" class="description-paragraph">
                     {{ paragraph }}
                   </p>
@@ -74,28 +99,42 @@
                     <div class="card-icon">📊</div>
                     <div class="card-content">
                       <label>课程难度</label>
-                      <div class="value">{{ course.difficulty }}</div>
+                      <div class="value">{{ difficultyLabel }}</div>
                     </div>
                   </div>
                   <div class="detail-card">
                     <div class="card-icon">⏱️</div>
                     <div class="card-content">
                       <label>课程时长</label>
-                      <div class="value">{{ course.duration }}</div>
+                      <div class="value">{{ course.duration || '暂无' }}</div>
                     </div>
                   </div>
                   <div class="detail-card">
                     <div class="card-icon">📋</div>
                     <div class="card-content">
                       <label>前置要求</label>
-                      <div class="value">{{ course.prerequisites }}</div>
+                      <div class="value">{{ course.prerequisites || '无' }}</div>
                     </div>
                   </div>
                   <div class="detail-card">
                     <div class="card-icon">👥</div>
                     <div class="card-content">
                       <label>适合人群</label>
-                      <div class="value">{{ course.targetAudience }}</div>
+                      <div class="value">{{ course.targetAudience || '暂无' }}</div>
+                    </div>
+                  </div>
+                  <div class="detail-card" v-if="course.category">
+                    <div class="card-icon">🏷️</div>
+                    <div class="card-content">
+                      <label>课程类别</label>
+                      <div class="value">{{ course.category }}</div>
+                    </div>
+                  </div>
+                  <div class="detail-card" v-if="course.price !== undefined && course.price !== null">
+                    <div class="card-icon">💰</div>
+                    <div class="card-content">
+                      <label>课程价格</label>
+                      <div class="value price-text">¥{{ course.price }}</div>
                     </div>
                   </div>
                 </div>
@@ -103,11 +142,11 @@
 
               <div v-if="activeTab === 'reviews'" class="reviews-section">
                 <h2>课程评价</h2>
-                
+
                 <div class="evaluations-list">
-                  <h3>学员评价 ({{ course.reviews.length }})</h3>
-                  <div v-if="course.reviews.length > 0" class="reviews-container">
-                    <div v-for="(review, index) in course.reviews" :key="index" class="review-card">
+                  <h3>学员评价 ({{ reviews.length }})</h3>
+                  <div v-if="reviews.length > 0" class="reviews-container">
+                    <div v-for="(review, index) in reviews" :key="index" class="review-card">
                       <div class="review-header">
                         <div class="review-user">
                           <div class="user-avatar">{{ review.user.charAt(0) }}</div>
@@ -133,8 +172,8 @@
                   <div class="form-group">
                     <label>评分</label>
                     <div class="rating-stars">
-                      <span 
-                        v-for="star in 5" 
+                      <span
+                        v-for="star in 5"
                         :key="star"
                         class="star"
                         :class="{ active: star <= newEvaluation.rating }"
@@ -146,9 +185,9 @@
                   </div>
                   <div class="form-group">
                     <label for="content">评价内容</label>
-                    <textarea 
-                      id="content" 
-                      v-model="newEvaluation.content" 
+                    <textarea
+                      id="content"
+                      v-model="newEvaluation.content"
                       placeholder="请分享您的学习体验..."
                       class="form-textarea"
                       rows="4"
@@ -160,7 +199,7 @@
 
               <div v-if="activeTab === 'register'" class="register-section">
                 <h2>报名课程</h2>
-                
+
                 <div v-if="!authStore.isAuthenticated" class="login-prompt">
                   <div class="prompt-icon">🔒</div>
                   <h3>请先登录</h3>
@@ -170,7 +209,7 @@
 
                 <div v-else class="registration-form">
                   <div class="course-summary">
-                    <img :src="course.image" :alt="course.name" class="course-thumbnail">
+                    <img :src="resolveImageUrl(course.image)" :alt="course.name" class="course-thumbnail">
                     <div class="course-info">
                       <h3>{{ course.name }}</h3>
                       <div class="info-row">
@@ -179,13 +218,13 @@
                       </div>
                       <div class="info-row">
                         <span class="label">课程难度：</span>
-                        <span class="value">{{ course.difficulty }}</span>
+                        <span class="value">{{ difficultyLabel }}</span>
                       </div>
                       <div class="info-row">
                         <span class="label">课程时长：</span>
                         <span class="value">{{ course.duration }}</span>
                       </div>
-                      <div class="info-row">
+                      <div class="info-row" v-if="course.price !== undefined && course.price !== null">
                         <span class="label">课程价格：</span>
                         <span class="value price">¥{{ course.price }}</span>
                       </div>
@@ -195,10 +234,10 @@
                   <form @submit.prevent="submitRegistration">
                     <div class="form-group">
                       <label for="name">真实姓名 *</label>
-                      <input 
-                        type="text" 
-                        id="name" 
-                        v-model="formData.name" 
+                      <input
+                        type="text"
+                        id="name"
+                        v-model="formData.name"
                         placeholder="请输入您的真实姓名"
                         class="form-input"
                         required
@@ -207,10 +246,10 @@
 
                     <div class="form-group">
                       <label for="phone">联系电话 *</label>
-                      <input 
-                        type="tel" 
-                        id="phone" 
-                        v-model="formData.phone" 
+                      <input
+                        type="tel"
+                        id="phone"
+                        v-model="formData.phone"
                         placeholder="请输入您的联系电话"
                         class="form-input"
                         required
@@ -219,10 +258,10 @@
 
                     <div class="form-group">
                       <label for="email">电子邮箱 *</label>
-                      <input 
-                        type="email" 
-                        id="email" 
-                        v-model="formData.email" 
+                      <input
+                        type="email"
+                        id="email"
+                        v-model="formData.email"
                         placeholder="请输入您的电子邮箱"
                         class="form-input"
                         required
@@ -231,9 +270,9 @@
 
                     <div class="form-group">
                       <label for="experience">户外运动经验</label>
-                      <textarea 
-                        id="experience" 
-                        v-model="formData.experience" 
+                      <textarea
+                        id="experience"
+                        v-model="formData.experience"
                         placeholder="请简单描述您的户外运动经验（选填）"
                         class="form-textarea"
                         rows="3"
@@ -242,9 +281,9 @@
 
                     <div class="form-group">
                       <label for="notes">备注信息</label>
-                      <textarea 
-                        id="notes" 
-                        v-model="formData.notes" 
+                      <textarea
+                        id="notes"
+                        v-model="formData.notes"
                         placeholder="其他需要说明的信息（选填）"
                         class="form-textarea"
                         rows="2"
@@ -278,7 +317,7 @@
                       </div>
                     </div>
 
-                    <div class="total-price">
+                    <div class="total-price" v-if="course.price !== undefined && course.price !== null">
                       <span>课程总价：</span>
                       <span class="price">¥{{ course.price }}</span>
                     </div>
@@ -289,6 +328,8 @@
               </div>
             </div>
           </div>
+
+          <!-- Course not found -->
           <div v-else class="course-not-found">
             <h2>课程未找到</h2>
             <p>抱歉，您查找的课程不存在。</p>
@@ -297,13 +338,100 @@
         </div>
       </main>
     </div>
+
+    <!-- Join Modal -->
+    <Teleport to="body">
+      <div v-if="showJoinModal" class="modal-overlay" @click.self="closeJoinModal">
+        <div class="join-modal">
+          <div class="modal-header">
+            <h2>立即报名</h2>
+            <button class="modal-close" @click="closeJoinModal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div v-if="!authStore.isAuthenticated" class="login-prompt">
+              <div class="prompt-icon">🔒</div>
+              <h3>请先登录</h3>
+              <p>您需要登录后才能报名课程</p>
+              <button @click="goToLogin" class="btn-login">去登录</button>
+            </div>
+            <div v-else class="modal-form">
+              <div class="course-summary">
+                <img :src="resolveImageUrl(course.image)" :alt="course.name" class="course-thumbnail">
+                <div class="course-info">
+                  <h3>{{ course.name }}</h3>
+                  <div class="info-row">
+                    <span class="label">难度：</span>
+                    <span class="value">{{ difficultyLabel }}</span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">时长：</span>
+                    <span class="value">{{ course.duration }}</span>
+                  </div>
+                  <div class="info-row" v-if="course.price !== undefined && course.price !== null">
+                    <span class="label">价格：</span>
+                    <span class="value price">¥{{ course.price }}</span>
+                  </div>
+                </div>
+              </div>
+              <form @submit.prevent="submitRegistrationFromModal">
+                <div class="form-group">
+                  <label for="modal-name">真实姓名 *</label>
+                  <input
+                    type="text"
+                    id="modal-name"
+                    v-model="formData.name"
+                    placeholder="请输入您的真实姓名"
+                    class="form-input"
+                    required
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="modal-phone">联系电话 *</label>
+                  <input
+                    type="tel"
+                    id="modal-phone"
+                    v-model="formData.phone"
+                    placeholder="请输入您的联系电话"
+                    class="form-input"
+                    required
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="modal-email">电子邮箱 *</label>
+                  <input
+                    type="email"
+                    id="modal-email"
+                    v-model="formData.email"
+                    placeholder="请输入您的电子邮箱"
+                    class="form-input"
+                    required
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="modal-experience">户外运动经验</label>
+                  <textarea
+                    id="modal-experience"
+                    v-model="formData.experience"
+                    placeholder="请简单描述您的户外运动经验（选填）"
+                    class="form-textarea"
+                    rows="3"
+                  ></textarea>
+                </div>
+                <button type="submit" class="btn-submit">确认报名</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { courses } from '../data/courseData';
+import { apiFetch } from '../utils/api';
+import { resolveImageUrl } from '../utils/imageUtils';
 import { useAuthStore } from '../stores/authStore';
 
 const route = useRoute();
@@ -312,6 +440,12 @@ const authStore = useAuthStore();
 const courseId = parseInt(route.params.id);
 const course = ref(null);
 const activeTab = ref('overview');
+const loading = ref(true);
+const error = ref(null);
+const showJoinModal = ref(false);
+
+// Local reviews storage (not from API, maintained locally)
+const reviews = ref([]);
 
 const newEvaluation = ref({
   user: authStore.user?.username || '',
@@ -328,15 +462,76 @@ const formData = ref({
   paymentMethod: 'points'
 });
 
+// Difficulty mapping: beginner→初级, intermediate→中级, advanced→高级
+const difficultyMap = {
+  beginner: '初级',
+  intermediate: '中级',
+  advanced: '高级'
+};
+
+const difficultyLabel = computed(() => {
+  if (!course.value) return '';
+  return difficultyMap[course.value.difficulty] || course.value.difficulty;
+});
+
 const descriptionParagraphs = computed(() => {
-  if (!course.value) return [];
+  if (!course.value || !course.value.detailedDescription) return [];
   return course.value.detailedDescription.split('\n\n').filter(p => p.trim());
 });
 
+// Fetch course detail from API
+const fetchCourse = async () => {
+  loading.value = true;
+  error.value = null;
+  try {
+    const data = await apiFetch(`/course/detail/${courseId}`);
+    if (data && data.id) {
+      course.value = data;
+      window.scrollTo(0, 0);
+
+      // Auto-fill personal info
+      if (authStore.isAuthenticated) {
+        const info = authStore.personalInfo;
+        formData.value.name = info.name || '';
+        formData.value.phone = info.phone || '';
+        formData.value.email = info.email || '';
+        formData.value.experience = info.experience || '';
+      }
+    } else {
+      course.value = null;
+    }
+  } catch (err) {
+    console.error('Failed to fetch course detail:', err);
+    error.value = err.message || '课程信息加载失败，请稍后重试。';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Join modal
+const openJoinModal = () => {
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return;
+  }
+  showJoinModal.value = true;
+};
+
+const closeJoinModal = () => {
+  showJoinModal.value = false;
+};
+
+const submitRegistrationFromModal = () => {
+  submitRegistration();
+  closeJoinModal();
+};
+
+// Rating
 const setRating = (rating) => {
   newEvaluation.value.rating = rating;
 };
 
+// Submit evaluation
 const submitEvaluation = () => {
   if (!authStore.isAuthenticated) {
     alert('请先登录');
@@ -358,8 +553,8 @@ const submitEvaluation = () => {
     date: new Date().toISOString().split('T')[0]
   };
 
-  course.value.reviews.unshift(review);
-  
+  reviews.value.unshift(review);
+
   newEvaluation.value = {
     user: authStore.user.username,
     rating: 0,
@@ -369,6 +564,7 @@ const submitEvaluation = () => {
   alert('评价提交成功！');
 };
 
+// Submit registration
 const submitRegistration = () => {
   if (!authStore.isAuthenticated) {
     alert('请先登录');
@@ -403,8 +599,8 @@ const submitRegistration = () => {
     }
     try {
       authStore.deductPoints(course.value.price);
-    } catch (error) {
-      alert(error.message);
+    } catch (err) {
+      alert(err.message);
       return;
     }
   }
@@ -420,8 +616,8 @@ const submitRegistration = () => {
       notes: '',
       paymentMethod: 'points'
     };
-  } catch (error) {
-    alert(error.message);
+  } catch (err) {
+    alert(err.message);
   }
 };
 
@@ -437,19 +633,7 @@ const goBack = () => {
 };
 
 onMounted(() => {
-  course.value = courses.find(c => c.id === courseId);
-  if (course.value) {
-    window.scrollTo(0, 0);
-  }
-
-  // 自动填充个人资料
-  if (authStore.isAuthenticated) {
-    const info = authStore.personalInfo;
-    formData.value.name = info.name || '';
-    formData.value.phone = info.phone || '';
-    formData.value.email = info.email || '';
-    formData.value.experience = info.experience || '';
-  }
+  fetchCourse();
 
   refreshInterval = setInterval(async () => {
     await refreshUserData();
@@ -465,8 +649,8 @@ onUnmounted(() => {
 const refreshUserData = async () => {
   try {
     await authStore.initAuth();
-  } catch (error) {
-    console.error('刷新用户数据失败:', error);
+  } catch (err) {
+    console.error('刷新用户数据失败:', err);
   }
 };
 
@@ -578,6 +762,59 @@ let refreshInterval = null;
   overflow-y: auto;
 }
 
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.error-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.error-state h2 {
+  font-size: 1.8rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.error-state p {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
 .course-detail {
   background: white;
   border-radius: 15px;
@@ -620,6 +857,7 @@ let refreshInterval = null;
   display: flex;
   gap: 2rem;
   flex-wrap: wrap;
+  margin-bottom: 1.5rem;
 }
 
 .meta-item {
@@ -631,6 +869,29 @@ let refreshInterval = null;
 
 .meta-icon {
   font-size: 1.3rem;
+}
+
+/* Join now button */
+.btn-join-now {
+  display: inline-block;
+  padding: 14px 40px;
+  background: white;
+  color: #667eea;
+  border: 2px solid white;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 5px;
+}
+
+.btn-join-now:hover {
+  background: #667eea;
+  color: white;
+  border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 .tab-content {
@@ -664,6 +925,21 @@ let refreshInterval = null;
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 3px solid #667eea;
+}
+
+.course-short-desc {
+  margin-bottom: 2rem;
+}
+
+.short-description {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #2c3e50;
+  line-height: 1.8;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border-left: 4px solid #667eea;
+  border-radius: 0 8px 8px 0;
 }
 
 .course-description {
@@ -718,6 +994,11 @@ let refreshInterval = null;
   font-size: 1.2rem;
   color: #2c3e50;
   font-weight: 500;
+}
+
+.card-content .value.price-text {
+  color: #e74c3c;
+  font-weight: 700;
 }
 
 .evaluation-form {
@@ -1084,6 +1365,89 @@ let refreshInterval = null;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.join-modal {
+  background: white;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px 15px 0 0;
+  color: white;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.modal-close:hover {
+  opacity: 0.7;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.modal-body .login-prompt {
+  padding: 2rem;
+}
+
+.modal-body .course-summary {
+  margin-bottom: 1.5rem;
+}
+
+.modal-form {
+  max-width: 100%;
+}
+
 @media (max-width: 768px) {
   .page-container {
     flex-direction: column;
@@ -1132,6 +1496,16 @@ let refreshInterval = null;
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .btn-join-now {
+    padding: 12px 30px;
+    font-size: 1rem;
+  }
+
+  .join-modal {
+    width: 95%;
+    max-width: 95%;
   }
 }
 </style>

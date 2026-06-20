@@ -116,39 +116,23 @@ const menuItems = [
     route: '/personal'
   },
   {
-    title: '管理员板块',
-    icon: '🔧',
-    isSectionHeader: true
-  },
-  {
     title: '管理员仪表盘',
     icon: '📊',
     route: '/admin/dashboard',
-    isAdminOnly: true
-  },
-  {
-    title: '管理员登录',
-    icon: '🔑',
-    route: '/admin/login',
     isAdminOnly: true
   }
 ];
 
 const visibleMenuItems = computed(() => {
-  if (!authStore.isAuthenticated) {
-    return menuItems.filter(item => 
-      item.title === '管理员登录' || 
-      (!item.isAdminOnly && !item.isSectionHeader)
-    );
-  } else if (authStore.user?.isAdmin) {
+  if (authStore.user?.isAdmin) {
     return menuItems;
   } else {
-    return menuItems.filter(item => !item.isAdminOnly && !item.isSectionHeader);
+    return menuItems.filter(item => !item.isAdminOnly);
   }
 });
 
 const isActive = computed(() => (itemRoute) => {
-  if (!itemRoute.startsWith('#')) {
+  if (itemRoute && !itemRoute.startsWith('#')) {
     return route.path === itemRoute;
   }
   return false;

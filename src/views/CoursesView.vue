@@ -9,122 +9,125 @@
     </div>
 
     <div class="container">
-      <div class="course-grid">
-        <div class="course-card">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-state">
+        <p>加载课程中...</p>
+      </div>
+
+      <!-- 错误状态 -->
+      <div v-else-if="error" class="error-state">
+        <p>{{ error }}</p>
+        <button @click="fetchCourses" class="retry-btn">重新加载</button>
+      </div>
+
+      <!-- 课程列表 -->
+      <div v-else class="course-grid">
+        <div class="course-card" v-for="course in courses" :key="course.id">
           <div class="course-image">
-            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=400&fit=crop" alt="山地探索课程">
+            <img :src="resolveImageUrl(course.image)" :alt="course.name">
           </div>
           <div class="course-content">
-            <h3 class="course-title">山地探索课程</h3>
-            <p class="course-description">适合初学者的山地探索技能培训，包括地图阅读、指南针使用和基础攀登技术。</p>
+            <h3 class="course-title">{{ course.name }}</h3>
+            <p class="course-description">{{ course.shortDescription }}</p>
             <div class="course-meta">
               <span class="meta-item">
                 <span class="meta-icon">⏱️</span>
-                2天
+                {{ course.duration }}
               </span>
               <span class="meta-item">
                 <span class="meta-icon">👥</span>
-                10-20人
+                {{ course.capacity || '待定' }}
               </span>
               <span class="meta-item">
                 <span class="meta-icon">📊</span>
-                入门级
+                {{ difficultyLabel(course.difficulty) }}
               </span>
             </div>
             <div class="course-footer">
-              <span class="course-price">¥1,280</span>
-              <router-link to="/courses/1" class="course-link">了解详情 →</router-link>
+              <span class="course-price">¥{{ course.price?.toLocaleString?.() || course.price }}</span>
+              <div class="course-actions">
+                <button @click="openJoinModal(course)" class="course-join-btn">立即报名</button>
+                <router-link :to="'/courses/' + course.id" class="course-link">了解详情 →</router-link>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="course-card">
-          <div class="course-image">
-            <img src="@/assets/sd.PNG" alt="山地救援课程">
-          </div>
-          <div class="course-content">
-            <h3 class="course-title">山地救援课程</h3>
-            <p class="course-description">专业的山地救援技术培训，学习紧急情况下的救援技巧和安全操作规范。</p>
-            <div class="course-meta">
-              <span class="meta-item">
-                <span class="meta-icon">⏱️</span>
-                3天
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">👥</span>
-                5-15人
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">📊</span>
-                进阶级
-              </span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price">¥2,580</span>
-              <router-link to="/courses/2" class="course-link">了解详情 →</router-link>
-            </div>
-          </div>
-        </div>
+      <!-- 空状态 -->
+      <div v-if="!loading && !error && courses.length === 0" class="empty-state">
+        <p>暂无课程数据</p>
+      </div>
+    </div>
 
-        <div class="course-card">
-          <div class="course-image">
-            <img src="@/assets/sc.PNG" alt="山地生存课程">
-          </div>
-          <div class="course-content">
-            <h3 class="course-title">山地生存课程</h3>
-            <p class="course-description">掌握野外生存技能，包括搭建庇护所、寻找水源、野外烹饪和应对恶劣天气。</p>
-            <div class="course-meta">
-              <span class="meta-item">
-                <span class="meta-icon">⏱️</span>
-                2天
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">👥</span>
-                8-16人
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">📊</span>
-                中级
-              </span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price">¥1,980</span>
-              <router-link to="/courses/3" class="course-link">了解详情 →</router-link>
-            </div>
-          </div>
-        </div>
-
-        <div class="course-card">
-          <div class="course-image">
-            <img src="@/assets/qsn.PNG" alt="青少年课程">
-          </div>
-          <div class="course-content">
-            <h3 class="course-title">青少年户外课程</h3>
-            <p class="course-description">专为青少年设计的户外教育课程，培养团队合作能力和环境意识。</p>
-            <div class="course-meta">
-              <span class="meta-item">
-                <span class="meta-icon">⏱️</span>
-                1天
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">👥</span>
-                15-30人
-              </span>
-              <span class="meta-item">
-                <span class="meta-icon">📊</span>
-                青少年
-              </span>
-            </div>
-            <div class="course-footer">
-              <span class="course-price">¥680</span>
-              <router-link to="/courses/4" class="course-link">了解详情 →</router-link>
-            </div>
-          </div>
+    <!-- 立即报名弹窗 -->
+    <div v-if="showJoinModal" class="modal-overlay" @click.self="closeJoinModal">
+      <div class="modal-content">
+        <h3>课程报名</h3>
+        <p>您正在报名：<strong>{{ selectedCourse?.name }}</strong></p>
+        <div class="modal-actions">
+          <button @click="confirmJoin" class="modal-confirm-btn">确认报名</button>
+          <button @click="closeJoinModal" class="modal-cancel-btn">取消</button>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { apiFetch } from '../utils/api'
+import { resolveImageUrl } from '../utils/imageUtils'
+
+const courses = ref([])
+const loading = ref(true)
+const error = ref(null)
+const showJoinModal = ref(false)
+const selectedCourse = ref(null)
+
+const difficultyMap = {
+  beginner: '入门级',
+  intermediate: '中级',
+  advanced: '进阶级'
+}
+
+function difficultyLabel(difficulty) {
+  return difficultyMap[difficulty] || difficulty || '未知'
+}
+
+async function fetchCourses() {
+  loading.value = true
+  error.value = null
+  try {
+    const data = await apiFetch('/course/list')
+    courses.value = Array.isArray(data) ? data : (data.data || [])
+  } catch (e) {
+    error.value = '课程加载失败，请检查网络连接后重试。'
+    console.error('Failed to fetch courses:', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+function openJoinModal(course) {
+  selectedCourse.value = course
+  showJoinModal.value = true
+}
+
+function closeJoinModal() {
+  showJoinModal.value = false
+  selectedCourse.value = null
+}
+
+function confirmJoin() {
+  alert('报名成功！')
+  closeJoinModal()
+}
+
+onMounted(() => {
+  fetchCourses()
+})
+</script>
 
 <style scoped>
 .courses-page {
@@ -157,6 +160,36 @@
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+/* 状态提示 */
+.loading-state,
+.error-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #666;
+  font-size: 1.1rem;
+  margin-top: 3rem;
+}
+
+.error-state p {
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+.retry-btn {
+  padding: 0.6rem 1.5rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.retry-btn:hover {
+  background-color: #2980b9;
 }
 
 .course-grid {
@@ -250,6 +283,12 @@
   color: #e74c3c;
 }
 
+.course-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .course-link {
   display: inline-block;
   padding: 0.8rem 1.5rem;
@@ -264,6 +303,94 @@
 .course-link:hover {
   background-color: #2980b9;
   transform: translateY(-2px);
+}
+
+.course-join-btn {
+  display: inline-block;
+  padding: 0.8rem 1.5rem;
+  background-color: #27ae60;
+  color: white;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.course-join-btn:hover {
+  background-color: #219a52;
+  transform: translateY(-2px);
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.modal-content p {
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.modal-confirm-btn {
+  padding: 0.7rem 2rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.modal-confirm-btn:hover {
+  background-color: #219a52;
+}
+
+.modal-cancel-btn {
+  padding: 0.7rem 2rem;
+  background-color: #95a5a6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.modal-cancel-btn:hover {
+  background-color: #7f8c8d;
 }
 
 /* 响应式设计 */
@@ -286,6 +413,12 @@
   .course-meta {
     flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  .course-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
 }
 </style>

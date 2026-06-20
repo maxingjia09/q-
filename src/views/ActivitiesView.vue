@@ -1,27 +1,46 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
-// 导入活动数据
-import { hikingRoutes, mountainExpeditions } from '../data/activityData.js';
-// 导入俱乐部数据
-import { clubs } from '../data/clubData.js';
+import { apiFetch } from '../utils/api';
+import { resolveImageUrl } from '../utils/imageUtils';
 import headerBgImg from '@/assets/ga.jpg';
 
 const authStore = useAuthStore();
 const headerStyle = { backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${headerBgImg})` };
 
+// API数据
+const activityList = ref([]);
+const clubList = ref([]);
+const clubRouteList = ref([]);
+const isLoading = ref(false);
+
+// 难度映射：English → Chinese
+const difficultyMap = {
+  beginner: '初级',
+  intermediate: '中等',
+  advanced: '较高',
+  expert: '高',
+  extreme: '困难'
+};
+
+const toChineseDifficulty = (difficulty) => {
+  if (!difficulty) return '';
+  return difficultyMap[difficulty] || difficulty;
+};
+
 // 活动类型切换
-const activeTab = ref('hiking');
+const activityTab = ref('hiking');
 const tabs = [
   { id: 'hiking', name: '徒步活动' },
-  { id: 'climbing', name: '攀登活动' }
+  { id: 'mountain', name: '雪山攀登' }
 ];
 
-// 攀登活动子类型切换
-const activeClimbingTab = ref('mountain');
-const climbingTabs = [
-  { id: 'mountain', name: '雪山' }
-];
+// 根据tab筛选活动
+const filteredActivities = computed(() => {
+  if (activityTab.value === 'hiking') return activityList.value.filter(a => a.type === 'hiking');
+  if (activityTab.value === 'mountain') return activityList.value.filter(a => a.type === 'mountain');
+  return activityList.value;
+});
 
 // 报名弹窗相关
 const showModal = ref(false);
@@ -42,14 +61,48 @@ const availableClubs = computed(() => {
 
   const activityName = selectedActivity.value.name;
 
-  return clubs.filter(club =>
-    club.allRoutes.some(route => route.name === activityName)
-  );
+  // 通过club-route关联数据找到可承办该活动的俱乐部ID
+  const matchingClubIds = clubRouteList.value
+    .filter(r => r.name === activityName)
+    .map(r => r.clubid);
+
+  return clubList.value.filter(club => matchingClubIds.includes(club.id));
 });
+
 const selectedPaymentMethod = ref('');
 const usePoints = ref(false);
 const pointsToUse = ref(0);
 const isProcessingPayment = ref(false);
+
+// 获取活动列表
+const fetchActivities = async () => {
+  try {
+    isLoading.value = true;
+    const data = await apiFetch('/activity/list');
+    activityList.value = Array.isArray(data) ? data : (data.data || []);
+  } catch (e) {
+    console.error('获取活动列表失败:', e);
+    activityList.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 获取俱乐部和路线数据
+const fetchClubs = async () => {
+  try {
+    const [clubsData, routesData] = await Promise.all([
+      apiFetch('/clubs/list'),
+      apiFetch('/club-route/list')
+    ]);
+    clubList.value = Array.isArray(clubsData) ? clubsData : (clubsData.data || []);
+    clubRouteList.value = Array.isArray(routesData) ? routesData : (routesData.data || []);
+  } catch (e) {
+    console.error('获取俱乐部数据失败:', e);
+    clubList.value = [];
+    clubRouteList.value = [];
+  }
+};
 
 // 显示报名弹窗
 const showJoinModal = (activity) => {
@@ -151,6 +204,11 @@ const submitForm = () => {
   // 打开支付方式选择弹窗
   openPaymentModal();
 };
+
+onMounted(() => {
+  fetchActivities();
+  fetchClubs();
+});
 </script>
 
 <template>
@@ -169,74 +227,42 @@ const submitForm = () => {
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          :class="['tab-button', { active: activeTab === tab.id }]"
-          @click="activeTab = tab.id"
+          :class="['tab-button', { active: activityTab === tab.id }]"
+          @click="activityTab = tab.id"
         >
           {{ tab.name }}
         </button>
       </div>
 
-      <!-- 徒步活动内容 -->
-      <div v-if="activeTab === 'hiking'" class="activity-content">
-        <div class="hiking-routes">
-          <h3 class="category-title">国内经典徒步路线</h3>
-          <div class="route-grid">
-            <div v-for="route in hikingRoutes" :key="route.id" class="route-card">
-              <div class="route-image">
-                <img :src="route.image" :alt="route.name">
-              </div>
-              <div class="route-content">
-                <h4 class="route-name">{{ route.name }}</h4>
-                <p class="route-location">{{ route.location }}</p>
-                <p class="route-description">{{ route.description.substring(0, 100) }}...</p>
-                <div class="route-details">
-                  <span class="detail-item">{{ route.difficulty }}</span>
-                  <span class="detail-item">{{ route.duration }}</span>
-                </div>
-                <div class="activity-buttons">
-                  <button class="detail-btn" @click="showActivityDetail(route)">了解详情</button>
-                  <button class="btn-join" @click="showJoinModal(route)">立即报名</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- 加载状态 -->
+      <div v-if="isLoading" class="loading-container">
+        <p class="loading-text">正在加载活动...</p>
       </div>
 
-      <!-- 攀登活动内容 -->
-      <div v-else-if="activeTab === 'climbing'" class="activity-content">
-        <div class="climbing-tabs">
-          <button
-            v-for="tab in climbingTabs"
-            :key="tab.id"
-            :class="['climbing-tab-button', { active: activeClimbingTab === tab.id }]"
-            @click="activeClimbingTab = tab.id"
-          >
-            {{ tab.name }}
-          </button>
-        </div>
-
-        <!-- 雪山攀登活动 -->
-        <div v-if="activeClimbingTab === 'mountain'" class="climbing-content">
-          <div class="mountain-expeditions">
-            <h3 class="category-title">雪山攀登探险</h3>
-            <div class="route-grid">
-              <div v-for="expedition in mountainExpeditions" :key="expedition.id" class="route-card">
-                <div class="route-image">
-                  <img :src="expedition.image" :alt="expedition.name">
+      <!-- 活动列表 -->
+      <div v-else class="activity-content">
+        <div class="category-section">
+          <h3 class="category-title">{{ activityTab === 'hiking' ? '徒步活动' : '雪山攀登' }}</h3>
+          <div v-if="filteredActivities.length === 0" class="empty-state">
+            <p>暂无活动数据</p>
+          </div>
+          <div v-else class="route-grid">
+            <div v-for="activity in filteredActivities" :key="activity.id" class="route-card">
+              <div class="route-image">
+                <img :src="resolveImageUrl(activity.image)" :alt="activity.name">
+              </div>
+              <div class="route-content">
+                <h4 class="route-name">{{ activity.name }}</h4>
+                <p class="route-location">{{ activity.location }}</p>
+                <p class="route-description">{{ (activity.description || '').substring(0, 100) }}...</p>
+                <div class="route-details">
+                  <span class="detail-item">{{ toChineseDifficulty(activity.difficulty) }}</span>
+                  <span class="detail-item">{{ activity.duration }}</span>
+                  <span v-if="activity.price" class="detail-item price-tag">¥{{ activity.price }}</span>
                 </div>
-                <div class="route-content">
-                  <h4 class="route-name">{{ expedition.name }}</h4>
-                  <p class="route-location">{{ expedition.location }}</p>
-                  <p class="route-description">{{ expedition.description.substring(0, 100) }}...</p>
-                  <div class="route-details">
-                    <span class="detail-item">{{ expedition.altitude }}</span>
-                    <span class="detail-item">{{ expedition.duration }}</span>
-                  </div>
-                  <div class="activity-buttons">
-                    <button class="detail-btn" @click="showActivityDetail(expedition)">了解详情</button>
-                    <button class="btn-join" @click="showJoinModal(expedition)">立即报名</button>
-                  </div>
+                <div class="activity-buttons">
+                  <button class="detail-btn" @click="showActivityDetail(activity)">了解详情</button>
+                  <button class="btn-join" @click="showJoinModal(activity)">立即报名</button>
                 </div>
               </div>
             </div>
@@ -337,7 +363,7 @@ const submitForm = () => {
         </div>
         <div class="modal-body detail-modal-body">
           <div class="detail-image">
-            <img :src="selectedActivity?.image" :alt="selectedActivity?.name" class="activity-image">
+            <img :src="resolveImageUrl(selectedActivity?.image)" :alt="selectedActivity?.name" class="activity-image">
           </div>
           <div class="detail-info">
             <p class="detail-location"><strong>地点：</strong>{{ selectedActivity?.location }}</p>
@@ -347,10 +373,13 @@ const submitForm = () => {
             </div>
             <div class="detail-specifics">
               <div v-if="selectedActivity?.difficulty" class="detail-item">
-                <strong>难度：</strong>{{ selectedActivity?.difficulty }}
+                <strong>难度：</strong>{{ toChineseDifficulty(selectedActivity?.difficulty) }}
               </div>
               <div v-if="selectedActivity?.duration" class="detail-item">
                 <strong>时长：</strong>{{ selectedActivity?.duration }}
+              </div>
+              <div v-if="selectedActivity?.price" class="detail-item">
+                <strong>价格：</strong>¥{{ selectedActivity?.price }}
               </div>
               <div v-if="selectedActivity?.height" class="detail-item">
                 <strong>高度：</strong>{{ selectedActivity?.height }}
@@ -426,6 +455,31 @@ const submitForm = () => {
   padding: 0 2rem;
 }
 
+/* 加载状态 */
+.loading-container {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.loading-text {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+}
+
+/* 价格标签 */
+.price-tag {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
 /* 活动类型切换 */
 .activity-tabs {
   display: flex;
@@ -472,39 +526,6 @@ const submitForm = () => {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* 攀登活动子类型切换 */
-.climbing-tabs {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 2rem;
-  gap: 1.5rem;
-}
-
-.climbing-tab-button {
-  padding: 0.8rem 1.5rem;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  background-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 25px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-.climbing-tab-button:hover {
-  border-color: #ffffff;
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.climbing-tab-button.active {
-  background-color: rgba(255, 255, 255, 0.8);
-  color: #2c3e50;
-  border-color: #ffffff;
-  text-shadow: none;
 }
 
 /* 分类标题 */
@@ -606,6 +627,7 @@ const submitForm = () => {
   display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .detail-item {

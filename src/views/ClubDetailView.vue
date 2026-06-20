@@ -1,6 +1,23 @@
 <template>
   <div class="club-detail-page">
-    <div class="page-container">
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>正在加载俱乐部信息...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="error-container">
+      <div class="error-content">
+        <h2>加载失败</h2>
+        <p>{{ error }}</p>
+        <button class="btn-back" @click="retry">重新加载</button>
+        <button class="btn-back btn-back-secondary" @click="goBack">返回首页</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div v-else class="page-container">
       <aside class="sidebar">
         <div class="sidebar-header">
           <div class="logo">
@@ -10,7 +27,7 @@
         </div>
 
         <nav class="sidebar-nav">
-          <div 
+          <div
             v-for="tab in [
               { id: 'overview', label: '俱乐部概览', icon: '🏔️' },
               { id: 'guides', label: '金牌向导', icon: '⭐' },
@@ -36,7 +53,7 @@
           <div v-if="club" class="club-detail">
             <header class="club-header">
               <div class="club-banner">
-                <img :src="club.image" :alt="club.name">
+                <img :src="resolveImageUrl(club.image)" :alt="club.name">
               </div>
               <div class="club-title-section">
                 <h1 class="club-title">{{ club.name }}</h1>
@@ -75,8 +92,13 @@
                   </div>
                 </div>
 
-                <h2>主要优势</h2>
-                <div class="highlights-section">
+                <div v-if="club.description" class="description-section">
+                  <h2>俱乐部简介</h2>
+                  <p class="club-description">{{ club.description }}</p>
+                </div>
+
+                <h2 v-if="club.highlights && club.highlights.length > 0">主要优势</h2>
+                <div v-if="club.highlights && club.highlights.length > 0" class="highlights-section">
                   <ul class="advantages-list">
                     <li v-for="(advantage, index) in club.highlights" :key="index" class="advantage-item">
                       <span class="advantage-icon">✓</span>
@@ -88,8 +110,8 @@
 
               <div v-if="activeTab === 'guides'" class="guides-section">
                 <h2>金牌向导</h2>
-                <div class="guides-list">
-                  <div v-for="(guide, index) in club.goldGuides" :key="index" class="guide-card">
+                <div v-if="club.goldGuides && club.goldGuides.length > 0" class="guides-list">
+                  <div v-for="(guide, index) in club.goldGuides" :key="guide.id || index" class="guide-card">
                     <div class="guide-avatar">
                       {{ guide.name.charAt(0) }}
                     </div>
@@ -99,7 +121,7 @@
                         <span class="guide-badge">金牌向导</span>
                       </div>
                       <p class="guide-experience">{{ guide.experience }}</p>
-                      <div class="guide-specialties">
+                      <div v-if="guide.specialties && guide.specialties.length > 0" class="guide-specialties">
                         <span v-for="(specialty, idx) in guide.specialties" :key="idx" class="specialty-tag">
                           {{ specialty }}
                         </span>
@@ -121,29 +143,35 @@
                     </div>
                   </div>
                 </div>
+                <div v-else class="empty-state">
+                  <p>暂无向导信息</p>
+                </div>
               </div>
 
               <div v-if="activeTab === 'routes'" class="routes-section">
                 <h2>承接路线</h2>
-                <div class="routes-list">
-                  <div v-for="(route, index) in club.allRoutes" :key="index" class="route-detail-item">
+                <div v-if="club.allRoutes && club.allRoutes.length > 0" class="routes-list">
+                  <div v-for="(route, index) in club.allRoutes" :key="route.id || index" class="route-detail-item">
                     <div class="route-header">
                       <span class="route-name">{{ route.name }}</span>
                       <span class="route-price">¥{{ route.price }}</span>
                     </div>
-                    <p class="route-description">{{ route.description }}</p>
+                    <p v-if="route.description" class="route-description">{{ route.description }}</p>
                     <div class="route-meta">
-                      <span class="route-difficulty">难度：{{ route.difficulty }}</span>
-                      <span class="route-duration">时长：{{ route.duration }}</span>
+                      <span v-if="route.difficulty" class="route-difficulty">难度：{{ route.difficulty }}</span>
+                      <span v-if="route.duration" class="route-duration">时长：{{ route.duration }}</span>
                     </div>
                   </div>
+                </div>
+                <div v-else class="empty-state">
+                  <p>暂无路线信息</p>
                 </div>
               </div>
 
               <div v-if="activeTab === 'reviews'" class="reviews-section">
                 <h2>客户评价</h2>
-                <div class="reviews-list">
-                  <div v-for="(review, index) in club.reviews" :key="index" class="review-item">
+                <div v-if="club.reviews && club.reviews.length > 0" class="reviews-list">
+                  <div v-for="(review, index) in club.reviews" :key="review.id || index" class="review-item">
                     <div class="review-header">
                       <div class="reviewer-avatar">
                         {{ review.name.charAt(0) }}
@@ -161,6 +189,9 @@
                     <p class="review-content">{{ review.content }}</p>
                   </div>
                 </div>
+                <div v-else class="empty-state">
+                  <p>暂无客户评价</p>
+                </div>
               </div>
             </div>
           </div>
@@ -176,47 +207,132 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from 'vue';
-import { useRoute, useRouter, onBeforeRouteUpdate } from 'vue-router';
-import { clubs } from '../data/clubData';
+import { ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { apiFetch } from '../utils/api';
+import { resolveImageUrl } from '../utils/imageUtils';
 
-const route = useRoute();
 const router = useRouter();
+
 const props = defineProps({
   id: {
     type: [String, Number],
     required: true
   }
 });
+
 const club = ref(null);
 const activeTab = ref('overview');
+const loading = ref(true);
+const error = ref(null);
 
-const handleTabClick = (tabId) => {
-  activeTab.value = tabId;
-};
-
-const loadClub = (id) => {
-  const clubId = parseInt(id);
-  club.value = clubs.find(c => c.id === clubId);
-  if (club.value) {
-    window.scrollTo(0, 0);
+/**
+ * Extract data from API response, handling both wrapped
+ * ({ data: ... }) and unwrapped response formats.
+ */
+function extractData(response) {
+  if (response && typeof response === 'object' && response.data !== undefined) {
+    return response.data;
   }
-};
+  return response;
+}
 
-const goBack = () => {
+/**
+ * Fetch club detail, routes, and guides from the API.
+ * Maps API response fields to the template's expected structure.
+ */
+async function fetchClubData(clubId) {
+  loading.value = true;
+  error.value = null;
+  club.value = null;
+
+  try {
+    const [clubResponse, routesResponse, guidesResponse] = await Promise.all([
+      apiFetch(`/clubs/detail/${clubId}`),
+      apiFetch(`/club-route/list/${clubId}`),
+      apiFetch(`/club-guide/list/${clubId}`)
+    ]);
+
+    const clubData = extractData(clubResponse);
+    const routesData = extractData(routesResponse);
+    const guidesData = extractData(guidesResponse);
+
+    // If the API returned null/undefined for the club, treat as not found
+    if (!clubData) {
+      loading.value = false;
+      return;
+    }
+
+    const guideList = Array.isArray(guidesData) ? guidesData : [];
+    const routeList = Array.isArray(routesData) ? routesData : [];
+
+    club.value = {
+      // Spread original API fields, then override/merge with mapped fields
+      ...clubData,
+      image: clubData.image || clubData.imageUrl || clubData.logo || clubData.avatar || '',
+      name: clubData.name || clubData.clubName || '',
+      rating: clubData.rating ?? 0,
+      reviewCount: clubData.reviewCount ?? clubData.review_count ?? 0,
+      guides: clubData.guides ?? clubData.guideCount ?? clubData.guide_count ?? guideList.length,
+      founded: clubData.founded || clubData.foundedYear || clubData.founded_year || clubData.established || '',
+      experience: clubData.experience || clubData.experienceYears || clubData.experience_years || '',
+      description: clubData.description || clubData.desc || clubData.intro || clubData.introduction || '',
+      highlights: clubData.highlights || clubData.advantages || clubData.features || [],
+      goldGuides: guideList.map(g => ({
+        id: g.id,
+        name: g.name || g.fullName || g.realName || '',
+        experience: g.experience || g.experienceYears || g.experienceDesc || '',
+        specialties: g.specialties || g.skills || g.certifications || [],
+        rating: g.rating ?? g.score ?? 0,
+        activities: g.activities ?? g.activityCount ?? g.activity_count ?? 0,
+        certifications: g.certifications ?? g.certCount ?? g.cert_count ?? 0
+      })),
+      allRoutes: routeList.map(r => ({
+        id: r.id,
+        name: r.name || r.title || r.routeName || '',
+        price: r.price ?? r.cost ?? 0,
+        description: r.description || r.desc || '',
+        difficulty: r.difficulty || r.level || '',
+        duration: r.duration || r.durationDays || r.duration_days || ''
+      })),
+      reviews: []
+    };
+  } catch (err) {
+    console.error('[ClubDetailView] fetchClubData error:', err);
+    error.value = err.message || '加载俱乐部数据失败，请稍后重试。';
+  } finally {
+    loading.value = false;
+  }
+}
+
+function handleTabClick(tabId) {
+  activeTab.value = tabId;
+}
+
+function goBack() {
   router.push('/');
   setTimeout(() => {
     window.scrollTo(0, 0);
   }, 100);
-};
+}
 
-onBeforeMount(() => {
-  loadClub(props.id);
-});
+function retry() {
+  if (props.id) {
+    fetchClubData(props.id);
+  }
+}
 
-onBeforeRouteUpdate((to) => {
-  loadClub(to.params.id);
-});
+// Watch for prop changes (handles both initial load and route param updates)
+watch(
+  () => props.id,
+  (newId) => {
+    if (newId) {
+      fetchClubData(newId);
+      window.scrollTo(0, 0);
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -448,6 +564,17 @@ onBeforeRouteUpdate((to) => {
   display: block;
   font-size: 20px;
   font-weight: 700;
+}
+
+.description-section {
+  margin-bottom: 30px;
+}
+
+.club-description {
+  color: #495057;
+  line-height: 1.8;
+  font-size: 15px;
+  margin: 0;
 }
 
 .highlights-section {
@@ -755,27 +882,16 @@ onBeforeRouteUpdate((to) => {
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
 }
 
-@media (max-width: 768px) {
-  .page-container {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-    top: 0;
-  }
-
-  .main-content {
-    min-width: 100%;
-  }
-
-  .content-wrapper {
-    padding: 20px;
-  }
+.btn-back-secondary {
+  background: #6c757d;
+  margin-left: 10px;
 }
 
+.btn-back-secondary:hover {
+  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+/* Loading State */
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -804,6 +920,63 @@ onBeforeRouteUpdate((to) => {
   color: white;
   font-size: 18px;
   font-weight: 500;
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+}
+
+.error-content {
+  text-align: center;
+  background: white;
+  padding: 3rem 4rem;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.error-content h2 {
+  font-size: 1.8rem;
+  color: #e74c3c;
+  margin-bottom: 1rem;
+}
+
+.error-content p {
+  color: #7f8c8d;
+  margin-bottom: 2rem;
+  font-size: 15px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #999;
+  font-size: 15px;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    top: 0;
+  }
+
+  .main-content {
+    min-width: 100%;
+  }
+
+  .content-wrapper {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -867,6 +1040,11 @@ onBeforeRouteUpdate((to) => {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .error-content {
+    padding: 2rem;
+    margin: 0 20px;
   }
 }
 </style>

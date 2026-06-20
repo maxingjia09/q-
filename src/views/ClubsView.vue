@@ -1,63 +1,55 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import peakClubLogo from '@/assets/peak-club-logo.svg';
-import explorerClubLogo from '@/assets/explorer-club-logo.svg';
-import braveClubLogo from '@/assets/brave-club-logo.svg';
+import { apiFetch } from '../utils/api';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 const router = useRouter();
 
 // 俱乐部数据
-const clubs = ref([
-  {
-    id: 1,
-    name: '巅峰户外俱乐部',
-    rating: 4.8,
-    reviewCount: 236,
-    image: peakClubLogo,
-    founded: '2014年3月',
-    experience: '10年',
-    guides: '28名专业向导',
-    highlights: ['10年专业登山经验', '国家级教练团队', '进口专业装备'],
-    routes: [
-      { name: '初级登山', price: 398 },
-      { name: '中级挑战', price: 698 },
-      { name: '高级攀登', price: 1298 }
-    ]
-  },
-  {
-    id: 2,
-    name: '探索者户外联盟',
-    rating: 4.6,
-    reviewCount: 189,
-    image: explorerClubLogo,
-    founded: '2016年8月',
-    experience: '8年',
-    guides: '22名专业向导',
-    highlights: ['野外生存技能培训', '多样化探险活动', '定制团队建设'],
-    routes: [
-      { name: '森林探险', price: 498 },
-      { name: '山地露营', price: 898 },
-      { name: '峡谷漂流', price: 598 }
-    ]
-  },
-  {
-    id: 3,
-    name: '勇者户外团队',
-    rating: 4.7,
-    reviewCount: 156,
-    image: braveClubLogo,
-    founded: '2015年5月',
-    experience: '9年',
-    guides: '25名专业向导',
-    highlights: ['全季节户外活动', '青少年训练营', '企业团建专家'],
-    routes: [
-      { name: '周末徒步', price: 298 },
-      { name: '攀岩体验', price: 498 },
-      { name: '雪山攀登', price: 1698 }
-    ]
+const clubs = ref([]);
+const loading = ref(true);
+
+// 页面加载时获取数据
+onMounted(async () => {
+  try {
+    const [clubsData, routesData, guidesData] = await Promise.all([
+      apiFetch('/clubs/list'),
+      apiFetch('/club-route/list'),
+      apiFetch('/club-guide/list')
+    ]);
+
+    clubs.value = clubsData.map(club => {
+      const clubRoutes = (routesData || []).filter(r => r.clubid === club.id);
+      const clubGuides = (guidesData || []).filter(g => g.clubid === club.id);
+      const guideCount = clubGuides.length;
+
+      return {
+        id: club.id,
+        name: club.name,
+        rating: club.rating || 0,
+        reviewCount: club.reviewcount || 0,
+        image: club.logo || club.image,
+        founded: club.founded || '',
+        experience: club.experience || '',
+        guides: guideCount,
+        highlights: [
+          `${club.experience || guideCount + '名向导'}专业带队经验`,
+          guideCount + '名专业向导',
+          '专业户外装备保障'
+        ],
+        routes: clubRoutes.map(r => ({
+          name: r.name || '未命名路线',
+          price: r.price || 0
+        }))
+      };
+    });
+  } catch (err) {
+    console.error('获取俱乐部数据失败：', err);
+  } finally {
+    loading.value = false;
   }
-]);
+});
 
 const showCustomerService = ref(false);
 const selectedClub = ref(null);
@@ -100,10 +92,14 @@ const sendMessage = () => {
     const club = selectedClub.value;
 
     if (userQuestion.includes('路线') || userQuestion.includes('推荐')) {
-      const routes = club.routes.map(route => `• ${route.name} - ¥${route.price}`).join('\n');
+      const routes = club.routes.length
+        ? club.routes.map(route => `• ${route.name} - ¥${route.price}`).join('\n')
+        : '暂无路线信息';
       responseContent = `我们为您推荐以下路线：\n\n${routes}\n\n您可以根据自己的经验和体力选择合适的路线。`;
     } else if (userQuestion.includes('价格') || userQuestion.includes('多少钱')) {
-      const prices = club.routes.map(route => `• ${route.name}：¥${route.price}`).join('\n');
+      const prices = club.routes.length
+        ? club.routes.map(route => `• ${route.name}：¥${route.price}`).join('\n')
+        : '暂无价格信息';
       responseContent = `我们的路线价格如下：\n\n${prices}\n\n价格包含：专业向导、基础装备、保险等。`;
     } else {
       responseContent = `感谢您的咨询！关于"${userMessage.content}"这个问题，我们的专业客服会尽快为您详细解答。`;
@@ -134,11 +130,21 @@ const viewClubDetails = (clubId) => {
     </div>
 
     <div class="container">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="loading-state">
+        <p>加载中...</p>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else-if="clubs.length === 0" class="empty-state">
+        <p>暂无俱乐部数据</p>
+      </div>
+
       <!-- 俱乐部网格 -->
-      <div class="clubs-grid">
+      <div v-else class="clubs-grid">
         <div v-for="club in clubs" :key="club.id" class="club-card">
           <div class="club-image">
-            <img :src="club.image" :alt="club.name" class="club-photo">
+            <img :src="resolveImageUrl(club.image)" :alt="club.name" class="club-photo">
           </div>
 
           <div class="club-info">
@@ -255,6 +261,15 @@ const viewClubDetails = (clubId) => {
   max-width: 1600px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+/* 加载和空状态 */
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 4rem 0;
+  color: #7f8c8d;
+  font-size: 1.1rem;
 }
 
 /* 俱乐部网格 */
