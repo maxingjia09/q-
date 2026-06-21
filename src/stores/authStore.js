@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-// API基础URL
-const API_BASE_URL = 'http://localhost:8122/api';
+// API基础URL（可通过 VITE_API_BASE_URL 环境变量覆盖）
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8122/api';
 
 export const useAuthStore = defineStore('auth', () => {
   // 状态

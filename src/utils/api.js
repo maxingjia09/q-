@@ -3,7 +3,7 @@
  * 统一的 HTTP 请求封装
  */
 
-const API_BASE_URL = 'http://localhost:8122/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8122/api';
 
 /**
  * 管理员专用请求（自动附加 X-User-Id 请求头）
@@ -13,7 +13,6 @@ const API_BASE_URL = 'http://localhost:8122/api';
  */
 export async function adminFetch(endpoint, options = {}) {
   const userId = localStorage.getItem('userId');
-  console.log('[adminFetch]', endpoint, 'userId:', userId);
   const headers = {
     'Content-Type': 'application/json',
     'X-User-Id': userId || '',
@@ -25,9 +24,7 @@ export async function adminFetch(endpoint, options = {}) {
     headers
   });
 
-  const data = await response.json();
-  console.log('[adminFetch]', endpoint, 'response:', data);
-  return data;
+  return response.json();
 }
 
 /**
