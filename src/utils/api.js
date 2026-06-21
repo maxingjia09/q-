@@ -3,7 +3,7 @@
  * 统一的 HTTP 请求封装
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8122/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * 管理员专用请求（自动附加 X-User-Id 请求头）
