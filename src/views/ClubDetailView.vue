@@ -211,6 +211,7 @@ import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiFetch } from '../utils/api';
 import { resolveImageUrl } from '../utils/imageUtils';
+import { clubs as fallbackClubs } from '../data/clubData';
 
 const router = useRouter();
 
@@ -298,8 +299,21 @@ async function fetchClubData(clubId) {
       reviews: []
     };
   } catch (err) {
-    console.error('[ClubDetailView] fetchClubData error:', err);
-    error.value = err.message || '加载俱乐部数据失败，请稍后重试。';
+    console.error('[ClubDetailView] fetchClubData error，使用本地数据:', err);
+    // 降级为静态数据
+    const fb = fallbackClubs.find(c => c.id == clubId);
+    if (fb) {
+      club.value = {
+        ...fb,
+        image: fb.image,
+        guides: parseInt(fb.guides) || fb.guides || 0,
+        goldGuides: fb.goldGuides || [],
+        allRoutes: fb.allRoutes || fb.routes || [],
+        reviews: fb.reviews || []
+      };
+    } else {
+      error.value = '加载俱乐部数据失败，请稍后重试。';
+    }
   } finally {
     loading.value = false;
   }

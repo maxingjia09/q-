@@ -433,6 +433,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { apiFetch } from '../utils/api';
 import { resolveImageUrl } from '../utils/imageUtils';
 import { useAuthStore } from '../stores/authStore';
+import { courses as fallbackCourses } from '../data/courseData';
 
 const route = useRoute();
 const router = useRouter();
@@ -501,8 +502,22 @@ const fetchCourse = async () => {
       course.value = null;
     }
   } catch (err) {
-    console.error('Failed to fetch course detail:', err);
-    error.value = err.message || '课程信息加载失败，请稍后重试。';
+    console.error('获取课程详情失败，使用本地数据:', err);
+    // 降级为静态数据
+    const fb = fallbackCourses.find(c => c.id === courseId);
+    if (fb) {
+      course.value = {
+        ...fb,
+        shortDescription: fb.shortDescription,
+        detailedDescription: fb.detailedDescription,
+        prerequisites: fb.prerequisites,
+        targetAudience: fb.targetAudience,
+        category: fb.category
+      };
+      window.scrollTo(0, 0);
+    } else {
+      error.value = '课程信息加载失败，请稍后重试。';
+    }
   } finally {
     loading.value = false;
   }
