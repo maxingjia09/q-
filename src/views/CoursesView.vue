@@ -55,7 +55,7 @@
       </div>
 
       <!-- 空状态 -->
-      <div v-if="!loading && !error && courses.length === 0" class="empty-state">
+      <div v-if="courses.length === 0" class="empty-state">
         <p>暂无课程数据</p>
       </div>
     </div>
@@ -78,6 +78,7 @@
 import { ref, onMounted } from 'vue'
 import { apiFetch } from '../utils/api'
 import { resolveImageUrl } from '../utils/imageUtils'
+import { courses as fallbackCourses } from '../data/courseData'
 
 const courses = ref([])
 const loading = ref(true)
@@ -102,8 +103,8 @@ async function fetchCourses() {
     const data = await apiFetch('/course/list')
     courses.value = Array.isArray(data) ? data : (data.data || [])
   } catch (e) {
-    error.value = '课程加载失败，请检查网络连接后重试。'
-    console.error('Failed to fetch courses:', e)
+    console.error('获取课程列表失败，使用本地数据：', e)
+    courses.value = fallbackCourses
   } finally {
     loading.value = false
   }
@@ -162,7 +163,6 @@ onMounted(() => {
   padding: 0 2rem;
 }
 
-/* 状态提示 */
 .loading-state,
 .error-state,
 .empty-state {
@@ -393,32 +393,14 @@ onMounted(() => {
   background-color: #7f8c8d;
 }
 
-/* 响应式设计 */
 @media (max-width: 992px) {
-  .course-card {
-    flex-direction: column;
-  }
-
-  .course-image {
-    width: 100%;
-    height: 220px;
-  }
+  .course-card { flex-direction: column; }
+  .course-image { width: 100%; height: 220px; }
 }
 
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 2rem;
-  }
-
-  .course-meta {
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .course-footer {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
+  .page-title { font-size: 2rem; }
+  .course-meta { flex-wrap: wrap; gap: 1rem; }
+  .course-footer { flex-direction: column; gap: 1rem; align-items: flex-start; }
 }
 </style>

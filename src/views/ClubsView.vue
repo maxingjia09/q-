@@ -3,14 +3,14 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiFetch } from '../utils/api';
 import { resolveImageUrl } from '../utils/imageUtils';
+import { clubs as fallbackClubs } from '../data/clubData';
 
 const router = useRouter();
 
-// 俱乐部数据
 const clubs = ref([]);
 const loading = ref(true);
 
-// 页面加载时获取数据
+// 获取数据（API优先，失败时降级为静态数据）
 onMounted(async () => {
   try {
     const [clubsData, routesData, guidesData] = await Promise.all([
@@ -45,7 +45,8 @@ onMounted(async () => {
       };
     });
   } catch (err) {
-    console.error('获取俱乐部数据失败：', err);
+    console.error('获取俱乐部数据失败，使用本地数据：', err);
+    clubs.value = fallbackClubs;
   } finally {
     loading.value = false;
   }
@@ -263,7 +264,6 @@ const viewClubDetails = (clubId) => {
   padding: 0 2rem;
 }
 
-/* 加载和空状态 */
 .loading-state,
 .empty-state {
   text-align: center;
@@ -272,7 +272,6 @@ const viewClubDetails = (clubId) => {
   font-size: 1.1rem;
 }
 
-/* 俱乐部网格 */
 .clubs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -280,7 +279,6 @@ const viewClubDetails = (clubId) => {
   margin-top: 3rem;
 }
 
-/* 俱乐部卡片 */
 .club-card {
   background-color: white;
   border-radius: 12px;
@@ -294,7 +292,6 @@ const viewClubDetails = (clubId) => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-/* 俱乐部图片 */
 .club-image {
   height: 200px;
   overflow: hidden;
@@ -310,7 +307,6 @@ const viewClubDetails = (clubId) => {
   object-fit: contain;
 }
 
-/* 俱乐部信息 */
 .club-info {
   padding: 1.5rem;
 }
@@ -322,7 +318,6 @@ const viewClubDetails = (clubId) => {
   font-weight: 600;
 }
 
-/* 评分 */
 .club-rating {
   display: flex;
   align-items: center;
@@ -346,7 +341,6 @@ const viewClubDetails = (clubId) => {
   font-size: 0.9rem;
 }
 
-/* 主要优势 */
 .club-highlights {
   margin-bottom: 1.5rem;
 }
@@ -381,7 +375,6 @@ const viewClubDetails = (clubId) => {
   margin-top: 0.1rem;
 }
 
-/* 路线价格 */
 .club-prices {
   margin-bottom: 1.5rem;
 }
@@ -404,7 +397,6 @@ const viewClubDetails = (clubId) => {
   color: #e74c3c;
 }
 
-/* 操作按钮 */
 .club-actions {
   display: flex;
   gap: 1rem;
@@ -442,7 +434,6 @@ const viewClubDetails = (clubId) => {
   color: white;
 }
 
-/* 客服服务弹窗样式 */
 .customer-service-overlay {
   position: fixed;
   top: 0;
@@ -647,20 +638,12 @@ const viewClubDetails = (clubId) => {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
-/* 响应式设计 */
 @media (max-width: 1200px) {
-  .clubs-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .clubs-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 2rem;
-  }
-
-  .clubs-grid {
-    grid-template-columns: 1fr;
-  }
+  .page-title { font-size: 2rem; }
+  .clubs-grid { grid-template-columns: 1fr; }
 }
 </style>

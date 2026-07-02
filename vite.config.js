@@ -13,5 +13,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-  assetsInclude: ['**/*.PNG']
+  assetsInclude: ['**/*.PNG'],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8122',
+        changeOrigin: true
+      }
+    }
+  }
 })

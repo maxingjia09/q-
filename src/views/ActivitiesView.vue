@@ -3,30 +3,16 @@ import { ref, computed, onMounted } from 'vue';
 import { useAuthStore } from '../stores/authStore';
 import { apiFetch } from '../utils/api';
 import { resolveImageUrl } from '../utils/imageUtils';
+import { hikingRoutes, mountainExpeditions } from '../data/activityData';
+import { clubs } from '../data/clubData';
 import headerBgImg from '@/assets/ga.jpg';
 
 const authStore = useAuthStore();
 const headerStyle = { backgroundImage: `linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${headerBgImg})` };
 
-// API数据
+const isLoading = ref(true);
 const activityList = ref([]);
 const clubList = ref([]);
-const clubRouteList = ref([]);
-const isLoading = ref(false);
-
-// 难度映射：English → Chinese
-const difficultyMap = {
-  beginner: '初级',
-  intermediate: '中等',
-  advanced: '较高',
-  expert: '高',
-  extreme: '困难'
-};
-
-const toChineseDifficulty = (difficulty) => {
-  if (!difficulty) return '';
-  return difficultyMap[difficulty] || difficulty;
-};
 
 // 活动类型切换
 const activityTab = ref('hiking');
@@ -37,9 +23,9 @@ const tabs = [
 
 // 根据tab筛选活动
 const filteredActivities = computed(() => {
-  if (activityTab.value === 'hiking') return activityList.value.filter(a => a.type === 'hiking');
-  if (activityTab.value === 'mountain') return activityList.value.filter(a => a.type === 'mountain');
-  return activityList.value;
+  if (activityTab.value === 'hiking') return activityList.filter(a => a.type === 'hiking');
+  if (activityTab.value === 'mountain') return activityList.filter(a => a.type === 'mountain');
+  return activityList;
 });
 
 // 报名弹窗相关
@@ -55,18 +41,32 @@ const formData = ref({
   club: ''
 });
 
+// 难度映射
+const difficultyMap = {
+  beginner: '初级',
+  intermediate: '中等',
+  advanced: '较高',
+  expert: '高',
+  extreme: '困难'
+};
+
+const toChineseDifficulty = (difficulty) => {
+  if (!difficulty) return '';
+  return difficultyMap[difficulty] || difficulty;
+};
+
 // 根据选中的活动筛选出承接该活动的俱乐部
 const availableClubs = computed(() => {
   if (!selectedActivity.value) return [];
-
   const activityName = selectedActivity.value.name;
 
-  // 通过club-route关联数据找到可承办该活动的俱乐部ID
-  const matchingClubIds = clubRouteList.value
-    .filter(r => r.name === activityName)
-    .map(r => r.clubid);
-
-  return clubList.value.filter(club => matchingClubIds.includes(club.id));
+  // 优先用 allRoutes（静态数据），否则用 clubRouteList
+  return clubList.value.filter(club => {
+    if (club.allRoutes) {
+      return club.allRoutes.some(route => route.name === activityName);
+    }
+    return false;
+  });
 });
 
 const selectedPaymentMethod = ref('');
@@ -74,41 +74,42 @@ const usePoints = ref(false);
 const pointsToUse = ref(0);
 const isProcessingPayment = ref(false);
 
-// 获取活动列表
+// 获取活动列表（API优先，失败时降级为静态数据）
 const fetchActivities = async () => {
   try {
     isLoading.value = true;
     const data = await apiFetch('/activity/list');
     activityList.value = Array.isArray(data) ? data : (data.data || []);
   } catch (e) {
-    console.error('获取活动列表失败:', e);
-    activityList.value = [];
+    console.error('获取活动列表失败，使用本地数据:', e);
+    const hiking = hikingRoutes.map(a => ({ ...a, type: 'hiking' }));
+    const mountain = mountainExpeditions.map(a => ({ ...a, type: 'mountain' }));
+    activityList.value = [...hiking, ...mountain];
   } finally {
     isLoading.value = false;
   }
 };
 
-// 获取俱乐部和路线数据
+// 获取俱乐部数据（报名弹窗用）
 const fetchClubs = async () => {
   try {
-    const [clubsData, routesData] = await Promise.all([
-      apiFetch('/clubs/list'),
-      apiFetch('/club-route/list')
-    ]);
-    clubList.value = Array.isArray(clubsData) ? clubsData : (clubsData.data || []);
-    clubRouteList.value = Array.isArray(routesData) ? routesData : (routesData.data || []);
+    const data = await apiFetch('/clubs/list');
+    clubList.value = Array.isArray(data) ? data : (data.data || []);
   } catch (e) {
-    console.error('获取俱乐部数据失败:', e);
-    clubList.value = [];
-    clubRouteList.value = [];
+    console.error('获取俱乐部数据失败，使用本地数据:', e);
+    clubList.value = clubs;
   }
 };
+
+onMounted(() => {
+  fetchActivities();
+  fetchClubs();
+});
 
 // 显示报名弹窗
 const showJoinModal = (activity) => {
   selectedActivity.value = activity;
   showModal.value = true;
-  // 自动填充个人资料
   const info = authStore.personalInfo;
   formData.value = {
     name: info.name || '',
@@ -147,13 +148,11 @@ const closePaymentModal = () => {
 
 // 打开支付弹窗
 const openPaymentModal = () => {
-  // 表单验证
   if (!formData.value.name || !formData.value.phone) {
     alert('请填写姓名和手机号');
     return;
   }
   showPaymentModal.value = true;
-  // 初始化积分抵扣信息
   pointsToUse.value = authStore.points;
 };
 
@@ -161,20 +160,12 @@ const openPaymentModal = () => {
 const confirmPayment = async () => {
   try {
     isProcessingPayment.value = true;
-
-    // 模拟支付处理延迟
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    let pointsDeducted = 0;
-
-    // 如果使用积分抵扣
     if (usePoints.value && pointsToUse.value > 0) {
-      // 调用积分抵扣的方法
-      pointsDeducted = authStore.deductPoints(pointsToUse.value);
-      console.log(`使用积分抵扣: ${pointsToUse.value}，抵扣后剩余积分: ${pointsDeducted}`);
+      authStore.deductPoints(pointsToUse.value);
     }
 
-    // 调用authStore的joinActivity方法
     authStore.joinActivity(selectedActivity.value, {
       ...formData.value,
       paymentMethod: selectedPaymentMethod.value,
@@ -182,7 +173,6 @@ const confirmPayment = async () => {
       pointsToUse: pointsToUse.value
     });
 
-    // 显示提交成功提示
     alert(`报名成功！您的活动已添加到个人中心。\n支付方式：${selectedPaymentMethod.value === 'wechat' ? '微信支付' : '支付宝支付'}${usePoints.value ? `，积分抵扣：${pointsToUse.value}` : ''}`);
     closePaymentModal();
     closeModal();
@@ -195,20 +185,12 @@ const confirmPayment = async () => {
 
 // 提交报名表单 - 打开支付选择弹窗
 const submitForm = () => {
-  // 检查用户是否已登录
   if (!authStore.isAuthenticated) {
     alert('请先登录后再报名活动');
     return;
   }
-
-  // 打开支付方式选择弹窗
   openPaymentModal();
 };
-
-onMounted(() => {
-  fetchActivities();
-  fetchClubs();
-});
 </script>
 
 <template>
@@ -256,7 +238,7 @@ onMounted(() => {
                 <p class="route-location">{{ activity.location }}</p>
                 <p class="route-description">{{ (activity.description || '').substring(0, 100) }}...</p>
                 <div class="route-details">
-                  <span class="detail-item">{{ toChineseDifficulty(activity.difficulty) }}</span>
+                  <span class="detail-item">{{ activity.difficulty }}</span>
                   <span class="detail-item">{{ activity.duration }}</span>
                   <span v-if="activity.price" class="detail-item price-tag">¥{{ activity.price }}</span>
                 </div>
@@ -321,7 +303,6 @@ onMounted(() => {
         </div>
         <div class="modal-body">
           <div class="payment-options">
-            <!-- 积分抵扣选项 -->
             <div class="payment-option">
               <input type="checkbox" id="use-points" v-model="usePoints">
               <label for="use-points">使用积分抵扣</label>
@@ -330,8 +311,6 @@ onMounted(() => {
                 <input type="number" v-model.number="pointsToUse" min="0" :max="authStore.points" placeholder="输入抵扣积分">
               </div>
             </div>
-
-            <!-- 支付方式选择 -->
             <div class="payment-methods">
               <h4>支付方式</h4>
               <div class="payment-method">
@@ -373,7 +352,7 @@ onMounted(() => {
             </div>
             <div class="detail-specifics">
               <div v-if="selectedActivity?.difficulty" class="detail-item">
-                <strong>难度：</strong>{{ toChineseDifficulty(selectedActivity?.difficulty) }}
+                <strong>难度：</strong>{{ selectedActivity?.difficulty }}
               </div>
               <div v-if="selectedActivity?.duration" class="detail-item">
                 <strong>时长：</strong>{{ selectedActivity?.duration }}
@@ -512,23 +491,15 @@ onMounted(() => {
   box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
 }
 
-/* 活动内容容器 */
 .activity-content {
   animation: fadeIn 0.5s ease-out;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 分类标题 */
 .category-title {
   font-size: 1.8rem;
   color: #ffffff;
@@ -537,7 +508,6 @@ onMounted(() => {
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
 }
 
-/* 路线卡片网格 */
 .route-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -545,7 +515,6 @@ onMounted(() => {
   margin-top: 2rem;
 }
 
-/* 路线卡片 */
 .route-card {
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
@@ -554,7 +523,6 @@ onMounted(() => {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* 活动按钮样式 */
 .activity-buttons {
   display: flex;
   gap: 10px;
@@ -655,7 +623,7 @@ onMounted(() => {
   background-color: #2980b9;
 }
 
-/* 报名弹窗样式 */
+/* 弹窗样式 */
 .join-modal {
   position: fixed;
   top: 0;
@@ -682,14 +650,8 @@ onMounted(() => {
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .modal-header {
@@ -793,7 +755,6 @@ onMounted(() => {
   background-color: #2980b9;
 }
 
-/* 支付选项样式 */
 .payment-options {
   display: flex;
   flex-direction: column;
@@ -863,7 +824,6 @@ onMounted(() => {
   cursor: pointer;
 }
 
-/* 活动详情弹窗样式 */
 .detail-modal-content {
   max-width: 700px;
 }
@@ -912,13 +872,11 @@ onMounted(() => {
 }
 
 .detail-specifics .detail-item {
-  background-color: #f5f5f5;
+  background-color: #f0f8ff;
+  color: #3498db;
   padding: 8px 15px;
   border-radius: 20px;
   font-size: 14px;
-  color: #333;
-  background-color: #f0f8ff;
-  color: #3498db;
 }
 
 .reviews-section {
@@ -1010,30 +968,16 @@ onMounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .route-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .route-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 900px) {
-  .route-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .route-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .page-title {
-    font-size: 2rem;
-  }
-
-  .activity-tabs {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .route-grid {
-    grid-template-columns: 1fr;
-  }
+  .page-title { font-size: 2rem; }
+  .activity-tabs { flex-direction: column; align-items: center; gap: 1rem; }
+  .route-grid { grid-template-columns: 1fr; }
 }
 </style>

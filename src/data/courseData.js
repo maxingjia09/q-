@@ -1,10 +1,9 @@
 // 课程数据文件
-// 导入图片
-// 使用相对路径引用图片
-const mountainExplorationImage = '../assets/sd.PNG';
-const mountainRescueImage = '../assets/sd.PNG';
-const mountainSurvivalImage = '../assets/sc.PNG';
-const youthCourseImage = '../assets/qsn.PNG';
+// 导入图片 - 使用 Vite import 语法确保打包后能正确解析
+import mountainExplorationImage from '@/assets/sd.PNG';
+import mountainRescueImage from '@/assets/sd.PNG';
+import mountainSurvivalImage from '@/assets/sc.PNG';
+import youthCourseImage from '@/assets/qsn.PNG';
 
 export const courses = [
   {
